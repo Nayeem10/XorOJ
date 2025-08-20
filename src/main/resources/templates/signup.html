@@ -12,30 +12,37 @@
   <section>
     <form action="/req/signup" method="post">
       <h1>Sign Up</h1>
-        <div class="inputbox">
-            <ion-icon name="person-outline"></ion-icon>
-            <input type="text" id= "username" name="username" required>
-            <label for="">Name</label>
-        </div>
-        <div class="inputbox">
-            <ion-icon name="mail-outline"></ion-icon>
-            <input type="email" id="email" name="email" required>
-            <label for="">Email</label>
-        </div>
-        
-        <div class="inputbox">
-            <ion-icon name="lock-closed-outline"></ion-icon>
-            <input type="password" id="password" name="password" required>
-            <label for="">Password</label>
-        </div>  
-        <div class="inputbox">
-          <ion-icon name="lock-closed-outline"></ion-icon>
-          <input type="password" id="passwordcon" name="passwordcon" required>
-          <label for="">Confirm Password</label>
-      </div>  
-        <button id= "submit" type="submit">Sign Up</button>
+
+      <p th:if="${error}" th:text="${error}" style="color: #e11;"></p>
+
+      <div class="inputbox">
+        <ion-icon name="person-outline"></ion-icon>
+        <input type="text" id="username" name="username" required>
+        <label>Name</label>
+      </div>
+
+      <div class="inputbox">
+        <ion-icon name="mail-outline"></ion-icon>
+        <input type="email" id="email" name="email" required>
+        <label>Email</label>
+      </div>
+
+      <div class="inputbox">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <input type="password" id="password" name="password" required>
+        <label>Password</label>
+      </div>
+
+      <div class="inputbox">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <input type="password" id="passwordcon" name="passwordcon" required>
+        <label>Confirm Password</label>
+      </div>
+
+      <button id="submit" type="submit">Sign Up</button>
+
       <div class="register">
-        <p>Already have an account? <a href="">Log In</a></p>
+        <p>Already have an account? <a href="/login">Log In</a></p>
       </div>
     </form>
   </section>
