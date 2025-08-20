@@ -10,6 +10,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.Judge_Mental.XorOJ.user.XorOJUserService;
@@ -34,31 +36,36 @@ public class SecurityConfig {
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userService);
+        provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
 
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
         .csrf(csrf -> csrf.disable())
         .authenticationProvider(authenticationProvider())
-        .formLogin(form -> form
+        .formLogin(httpForm -> {
+
+            httpForm
             .loginPage("/login")              // GET login page
             .loginProcessingUrl("/req/login") // POST login submit
-            .defaultSuccessUrl("/home", true) // after success
             .failureUrl("/login?error")
-            .permitAll()
-        )
-        .logout(logout -> logout
-            .logoutUrl("/logout")
-            .logoutSuccessUrl("/login?loggedOut")
-        )
-        .authorizeHttpRequests(reg -> reg
-            .requestMatchers("/login", "/signup", "/req/signup",
-                             "/css/**", "/js/**", "/images/**").permitAll()
-            .anyRequest().authenticated()
-        )
+            .permitAll();
+            httpForm.defaultSuccessUrl("/index", true); // after success
+
+      })
+    
+        .authorizeHttpRequests(reg -> {
+            reg.requestMatchers("/signup", "/req/signup", "/css/**", "/js/**").permitAll();
+            reg.anyRequest().authenticated();
+        })
+
         .build();
     }
 }

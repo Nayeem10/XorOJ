@@ -48,3 +48,31 @@
   </section>
 </body>
 </html>
+
+<script>
+  const submitButton = document.getElementById('submit');
+  submitButton.addEventListener('click', () => {
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const passwordCon = document.getElementById('passwordcon').value;
+    const data = {
+      username, 
+      password, 
+      email
+    };
+    if(password == passwordCon){
+      const jsonData = JSON.stringify(data);
+      fetch('/req/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: jsonData
+      })
+      .then(response => {
+      })
+    }
+  });
+
+</script>
