@@ -62,7 +62,7 @@ public class SecurityConfig {
       })
     
         .authorizeHttpRequests(reg -> {
-            reg.requestMatchers("/signup", "/req/signup", "/css/**", "/js/**").permitAll();
+            reg.requestMatchers("/index", "/signup", "/req/signup", "/css/**", "/js/**").permitAll();
             reg.anyRequest().authenticated();
         })
 

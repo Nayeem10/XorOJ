@@ -1,38 +1,489 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" th:with="username=${#httpServletRequest != null && #httpServletRequest.userPrincipal != null
+                         ? #httpServletRequest.userPrincipal.name : null}">
+
 <head>
-  <meta charset="UTF-8">
-  <title>XorOJ | Online Judge</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>XorOJ — Online Judge</title>
+
+  <!-- Fonts (optional) -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card: #f6f7f9;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --accent: #4f46e5;
+      --accent-contrast: #ffffff;
+      --link: #2563eb;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b1220;
+      --card: #101828;
+      --text: #e5e7eb;
+      --muted: #9aa4b2;
+      --border: #1f2a44;
+      --accent: #8b5cf6;
+      --accent-contrast: #0b1220;
+      --link: #60a5fa;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    /* Header / Navbar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: saturate(120%) blur(6px);
+      background: color-mix(in oklab, var(--bg) 85%, transparent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-weight: 800;
+      letter-spacing: .2px;
+      text-decoration: none;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), #06b6d4);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-contrast);
+      font-size: 16px;
+      box-shadow: 0 4px 14px color-mix(in oklab, var(--accent) 30%, transparent);
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text);
+      padding: .5rem .75rem;
+      border-radius: .6rem;
+      border: 1px solid transparent;
+    }
+
+    .nav-links a:hover {
+      background: var(--card);
+      border-color: var(--border);
+    }
+
+    /* Right controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .5rem .8rem;
+      border-radius: .6rem;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: var(--accent-contrast);
+      border-color: color-mix(in oklab, var(--accent) 50%, var(--border));
+    }
+
+    .btn:hover {
+      filter: brightness(1.05);
+    }
+
+    .username {
+      text-decoration: none;
+      color: var(--text);
+      padding: .5rem .75rem;
+      border-radius: .6rem;
+      border: 1px solid var(--border);
+      background: var(--card);
+      font-weight: 600;
+    }
+
+    .username:hover {
+      filter: brightness(1.05);
+    }
+
+    /* Theme toggle */
+    .toggle {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: .6rem;
+      padding: .45rem .6rem;
+      cursor: pointer;
+    }
+
+    /* Mobile menu */
+    .hamburger {
+      display: none;
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: .6rem;
+      padding: .45rem .6rem;
+    }
+
+    .mobile-menu {
+      display: none;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .mobile-menu a,
+    .mobile-auth a {
+      display: block;
+      padding: .9rem 1rem;
+      text-decoration: none;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mobile-auth {
+      padding: .5rem 1rem 1rem;
+      display: none;
+      gap: .5rem;
+    }
+
+    /* Layout */
+    .container {
+      margin: 1rem auto 3rem;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 35% 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 960px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards & sections */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem;
+    }
+
+    .card h2 {
+      margin: .25rem 0 1rem;
+      font-size: 1.1rem;
+    }
+
+    .contest-list {
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+    }
+
+    .contest-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: .5rem;
+      padding: .75rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg);
+    }
+
+    .contest-item .title {
+      font-weight: 700;
+    }
+
+    .contest-item .meta {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .contest-item .link {
+      align-self: center;
+      text-decoration: none;
+      background: var(--accent);
+      color: var(--accent-contrast);
+      padding: .4rem .7rem;
+      border-radius: .5rem;
+      font-weight: 600;
+    }
+
+    .hero {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .hero .banner {
+      padding: 1.25rem;
+      border-radius: 16px;
+      background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 65%, transparent), color-mix(in oklab, var(--link) 65%, transparent));
+      color: var(--accent-contrast);
+      border: 1px solid color-mix(in oklab, var(--accent) 40%, var(--border));
+    }
+
+    .banner h1 {
+      margin: 0 0 .5rem;
+      font-size: 1.6rem;
+    }
+
+    .banner p {
+      margin: 0;
+      opacity: .9;
+    }
+
+    .quick {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    @media (max-width: 760px) {
+      .quick {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .quick a {
+      text-decoration: none;
+      padding: 1rem;
+      border-radius: 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .quick a:hover {
+      filter: brightness(1.05);
+    }
+
+    /* Footer */
+    footer {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      color: var(--muted);
+      font-size: .9rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+    }
+  </style>
+
+  <script>
+    // Theme bootstrap: system preference, then saved preference
+    (function () {
+      const saved = localStorage.getItem('xoroj-theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    })();
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('xoroj-theme', next);
+    }
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      const auth = document.getElementById('mobileAuth');
+      const visible = menu.style.display === 'block';
+      menu.style.display = visible ? 'none' : 'block';
+      if (auth) auth.style.display = visible ? 'none' : 'grid';
+    }
+  </script>
 </head>
+
 <body>
-  <section>
-    <div>
-      <h1>Welcome to XorOJ</h1>
-      <p style="color:white; text-align:center; margin: 15px 0;">
-        Your platform for coding contests and problem solving
-      </p>
+  <!-- Nav -->
+  <header class="navbar">
+    <div class="nav-wrap">
+      <button class="hamburger" aria-label="Open Menu" onclick="toggleMobileMenu()">
+        ☰
+      </button>
 
-      <div class="inputbox">
-        <ion-icon name="person-outline"></ion-icon>
-        <input type="text" placeholder="Username" required>
-      </div>
+      <a class="brand" href="/" aria-label="XorOJ Home">
+        <span class="brand-logo">X</span>
+        <span>XorOJ</span>
+      </a>
 
-      <div class="inputbox">
-        <ion-icon name="lock-closed-outline"></ion-icon>
-        <input type="password" placeholder="Password" required>
-      </div>
+      <nav class="nav-links">
+        <a href="/problems">Problems</a>
+        <a href="/contests">Contests</a>
+      </nav>
 
-      <button onclick="window.location.href='/login'">Login</button>
+      <div class="spacer"></div>
 
-      <div class="register">
-        <p>Don’t have an account? 
-          <a href="/signup">Sign Up</a>
-        </p>
+      <div class="controls">
+        <button class="toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌓</button>
+
+        <!-- If logged in, show username; else show Login/Signup -->
+        <a class="username" th:if="${username != null}" th:href="@{/profile}" th:text="${username}">username</a>
+
+        <div class="auth" th:if="${username == null}">
+          <a class="btn" href="/login">Log in</a>
+          <a class="btn primary" href="/signup">Sign up</a>
+        </div>
       </div>
     </div>
-  </section>
+
+    <!-- Mobile drop-down -->
+    <div id="mobileMenu" class="mobile-menu">
+      <a href="/problems">Problems</a>
+      <a href="/contests">Contests</a>
+    </div>
+    <div id="mobileAuth" class="mobile-auth" th:if="${username == null}">
+      <a class="btn" href="/login">Log in</a>
+      <a class="btn primary" href="/signup">Sign up</a>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="container">
+    <!-- Left: Upcoming contests -->
+    <aside class="card">
+      <h2>Upcoming Contest</h2>
+      <div class="contest-list">
+        <!-- Example items; replace with server data later -->
+        <div class="contest-item">
+          <div>
+            <div class="title">XorOJ Weekly #12</div>
+            <div class="meta">Starts: 2025-08-25 20:00 (+06:00) • 2h</div>
+          </div>
+          <a class="link" href="/contests/weekly-12">View</a>
+        </div>
+        <div class="contest-item">
+          <div>
+            <div class="title">University Friendly Match</div>
+            <div class="meta">Starts: 2025-08-30 15:00 (+06:00) • 2.5h</div>
+          </div>
+          <a class="link" href="/contests/ufm-2025">View</a>
+        </div>
+        <div class="contest-item">
+          <div>
+            <div class="title">Beginner Blitz</div>
+            <div class="meta">Starts: 2025-09-05 19:30 (+06:00) • 1.5h</div>
+          </div>
+          <a class="link" href="/contests/beginner-blitz">View</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right: Hero + quick links -->
+    <section class="hero">
+      <div class="banner">
+        <h1>Welcome to XorOJ</h1>
+        <p>Practice algorithms, join contests, and track your progress — all in one place.</p>
+      </div>
+
+      <div class="quick">
+        <a href="/problems">
+          Explore Problems
+          <span>→</span>
+        </a>
+        <a href="/contests">
+          Join a Contest
+          <span>→</span>
+        </a>
+        <a th:href="${username != null} ? @{/profile} : @{/signup}">
+          <span th:text="${username != null} ? 'Go to Profile' : 'Create Account'">Create Account</span>
+          <span>→</span>
+        </a>
+      </div>
+
+      <div class="card">
+        <h2>Announcements</h2>
+        <p style="margin:.25rem 0;color:var(--muted);">
+          New judging backend rolling out next week. Expect faster compile times for Java & C++.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2025</span> XorOJ. All rights reserved.
+  </footer>
+
+  <script>
+    // Enhance: show hamburger on small screens
+    (function () {
+      const hb = document.querySelector('.hamburger');
+      const links = document.querySelector('.nav-links');
+      function setVis() {
+        if (window.innerWidth < 860) {
+          hb.style.display = 'inline-block';
+          links.style.display = 'none';
+        } else {
+          hb.style.display = 'none';
+          links.style.display = 'flex';
+          const menu = document.getElementById('mobileMenu');
+          const auth = document.getElementById('mobileAuth');
+          if (menu) menu.style.display = 'none';
+          if (auth) auth.style.display = 'none';
+        }
+      }
+      setVis();
+      window.addEventListener('resize', setVis);
+    })();
+  </script>
 </body>
+
 </html>
