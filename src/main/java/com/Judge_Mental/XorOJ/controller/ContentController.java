@@ -19,7 +19,7 @@ public class ContentController {
     public String signup() {
         return "signup";
     }
-
+    
     @GetMapping("/index")
     public String index(Model model, Principal principal) {
         if (principal != null) {
