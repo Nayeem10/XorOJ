@@ -1,26 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
-import PropTypes from "prop-types";
-import Avatar from "@mui/material/Avatar";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import Tooltip from "@mui/material/Tooltip";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
-import MenuIcon from "@mui/icons-material/Menu";
-import logo from "../assets/logo.svg";
+import logo from "../assets/xorpic.png";
 
-/**
- * Header component for XorOJ
- *
- * Props:
- *  - user: { name: string, avatarUrl?: string }
- *  - onLogout: () => void
- *  - onProfile: () => void
- */
 
-const Header = ({ user, onLogout, onProfile }) => {
+const Header = () => {
+
+  ///////////////////////////////////////////////
+  {/* TODO:: Replace with real authentication API */}
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Replace with your real API call
+    async function loadUser() {
+      // mock:
+      const data = { name: "Nayeem", avatarUrl: "" };
+      setUser(data);
+    }
+    loadUser();
+  }, []);
+  
+  {/* TODO: Implement proper logout with API call */}
+  const handleLogout = () => {
+    // Call your API, then redirect:
+    // await fetch('/api/logout', { method: 'POST', credentials: 'include' })
+    window.location.href = "/login";
+  };
   const [theme, setTheme] = useState('light')
+  
+  ///////////////////////////////////////////////
+
 
   useEffect(() => {
     // Get theme from localStorage or default to 'light'
@@ -60,7 +67,7 @@ const Header = ({ user, onLogout, onProfile }) => {
                 className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm border border-gray-100"
               >
                 <li><a href="/profile">Profile</a></li>
-                <li><a onClick={onLogout}>Logout</a></li>
+                <li><a onClick={handleLogout}>Logout</a></li>
               </ul>
             </div>
           </div>
