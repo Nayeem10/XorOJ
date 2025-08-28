@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.Judge_Mental.XorOJ.problems.Problem;
-import com.Judge_Mental.XorOJ.problems.ProblemRepository;
+import com.Judge_Mental.XorOJ.model.Problem;
+import com.Judge_Mental.XorOJ.repo.ProblemRepository;
 
 @RestController
 @RequestMapping("/api/problems")

@@ -7,6 +7,8 @@ import './index.css'
 import HomePage from './pages/HomePage.jsx'
 import ErrorPage from './pages/ErrorPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
+import CFProblemPage from './pages/CFProblemPage.jsx'
+import CreateProblemPage from './pages/CreateProblemPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -21,6 +23,14 @@ const router = createBrowserRouter([
   {
     path: "/problems",
     element: <div>Problems Page - To be implemented</div>
+  }, 
+  {
+    path: "/problems/cf/:id",
+    element: <CFProblemPage />
+  },
+  {
+    path: "/create-problem",
+    element: <CreateProblemPage />
   }
 ]);
 

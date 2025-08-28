@@ -1,4 +1,4 @@
-package com.Judge_Mental.XorOJ.problems;
+package com.Judge_Mental.XorOJ.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;

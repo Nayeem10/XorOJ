@@ -9,12 +9,10 @@ export default function ProfilePage() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch profile (use relative URL if you set up Vite proxy; otherwise keep absolute)
   useEffect(() => {
     setLoading(true);
     setError(null);
 
-    // If using Vite proxy: fetch(`/api/profile/${username}`)
     fetch(`/api/profile/${username}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch profile");
@@ -24,6 +22,7 @@ export default function ProfilePage() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [username]);
+
 
   // Derived display fields with safe fallbacks
   const fullName = useMemo(() => {
