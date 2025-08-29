@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 
 import './index.css'
 
@@ -14,10 +14,10 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
 
-// Small inline ProtectedRoute
+// ProtectedRoute
 function Protected({ element }) {
   const token = localStorage.getItem('xoroj.jwt')
-  return token ? element : <Login />
+  return token ? element : <Navigate to="/login" replace />
 }
 
 const router = createBrowserRouter([
