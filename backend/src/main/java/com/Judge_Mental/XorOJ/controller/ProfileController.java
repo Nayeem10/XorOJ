@@ -14,17 +14,24 @@ import com.Judge_Mental.XorOJ.repo.XUserRepository;
 @RestController
 @RequestMapping("/api/profile")
 public class ProfileController {
+
+    public record UserProfileDTO(String username, String email, String firstName, String lastName) {
+        public static UserProfileDTO fromEntity(XUser user) {
+            return new UserProfileDTO(user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName());
+        }
+    }
+
     @Autowired
     private XUserRepository repository;
     
     @GetMapping("{username}")
-    public ResponseEntity<XUser> getProfileByUsername(@PathVariable String username) {
+    public ResponseEntity<UserProfileDTO> getProfileByUsername(@PathVariable String username) {
         XUser user = repository.findByUsername(username);
 
         if (user != null) {
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(UserProfileDTO.fromEntity(user));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 }

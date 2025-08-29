@@ -15,9 +15,6 @@ public class XUserDetailsService implements UserDetailsService {
     @Autowired
     private XUserRepository userRepository;
 
-    // @Autowired
-    // private PasswordEncoder passwordEncoder;
-
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         XUser user = userRepository.findByUsername(username);

@@ -1,41 +1,40 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import './index.css'
 
 import HomePage from './pages/HomePage.jsx'
 import ErrorPage from './pages/ErrorPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
-import CFProblemPage from './pages/CFProblemPage.jsx'
 import CreateProblemPage from './pages/CreateProblemPage.jsx'
 
+// NEW
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+import { AuthProvider } from './auth/AuthContext.jsx'
+
+// Small inline ProtectedRoute
+function Protected({ element }) {
+  const token = localStorage.getItem('xoroj.jwt')
+  return token ? element : <Login />
+}
+
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <HomePage />,
-    errorElement: <ErrorPage />
-  },
-  {
-    path: "/profile/:username",
-    element: <ProfilePage />
-  },
-  {
-    path: "/problems",
-    element: <div>Problems Page - To be implemented</div>
-  }, 
-  {
-    path: "/problems/cf/:id",
-    element: <CFProblemPage />
-  },
-  {
-    path: "/create-problem",
-    element: <CreateProblemPage />
-  }
-]);
+  { path: '/login', element: <Login /> },
+  { path: '/register', element: <Register /> },
+
+  { path: '/', element: <Protected element={<HomePage />} />, errorElement: <ErrorPage /> },
+  { path: '/profile/:username', element: <Protected element={<ProfilePage />} /> },
+
+  { path: '/problems', element: <Protected element={<div>Problems Page - To be implemented</div>} /> },
+  { path: '/create-problem', element: <Protected element={<CreateProblemPage />} /> },
+])
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>,
 )

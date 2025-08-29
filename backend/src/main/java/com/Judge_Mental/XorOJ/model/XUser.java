@@ -1,7 +1,5 @@
 package com.Judge_Mental.XorOJ.model;
 
-// import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -25,7 +23,6 @@ public class XUser {
     @Column(unique = true, nullable = false)
     private String email;
     
-    // @JsonIgnore
     @Column(nullable = false)
     @Size(min = 4, message = "Password must be at least 4 characters long")
     private String password;

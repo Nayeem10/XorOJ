@@ -6,10 +6,10 @@ spring:
     password: ${POSTGRES_PASSWORD}
   
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: update   # or 'update' during dev if you don't want drop on shutdown else create-drop
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
