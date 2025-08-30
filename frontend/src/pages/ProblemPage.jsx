@@ -1,13 +1,16 @@
 // src/pages/ProblemPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Header from "../components/Header";
 import Card from "../components/Card";
 import Button from "../components/Button";
+import { apiFetch } from "../api/client";
 
 export default function ProblemPage() {
   const { id } = useParams();
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [code, setCode] = useState("// Write your code here\n");
   const [language, setLanguage] = useState("cpp");
   const [submitting, setSubmitting] = useState(false);
@@ -16,56 +19,61 @@ export default function ProblemPage() {
 
   // Fetch problem details
   useEffect(() => {
-    fetch(`/api/problems/${id}`)
-      .then((res) => res.json())
+    apiFetch(`/api/problems/${id}`)
       .then((data) => {
         setProblem(data);
         setLoading(false);
       })
       .catch((err) => {
         console.error("Failed to fetch problem", err);
+        setError(err.message);
         setLoading(false);
       });
   }, [id]);
 
-  // Fetch submissions
-  useEffect(() => {
-    fetch(`/api/problems/${id}/submissions`)
-      .then((res) => res.json())
-      .then((data) => setSubmissions(data))
-      .catch((err) => console.error("Failed to fetch submissions", err));
-  }, [id]);
-
-  // Submit code
+  // Placeholder submit handler - to be implemented later
   const handleSubmit = () => {
     setSubmitting(true);
     setMessage(null);
 
-    fetch(`/api/problems/${id}/submit`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ language, source: code }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setMessage(`Submission queued! ID: ${data.submissionId}`);
-        setSubmitting(false);
-        // Optionally, refresh submissions list
-        setSubmissions((prev) => [
-          { id: data.submissionId, status: "Queued", language, time: new Date().toISOString() },
-          ...prev,
-        ]);
-      })
-      .catch((err) => {
-        setMessage("Submission failed");
-        setSubmitting(false);
-      });
+    // Simulate submission
+    setTimeout(() => {
+      setMessage("Submission feature coming soon!");
+      setSubmitting(false);
+    }, 1000);
   };
 
-  if (loading) return <p className="text-center mt-6">Loading problem...</p>;
-  if (!problem) return <p className="text-center mt-6">Problem not found.</p>;
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto mt-6 px-4">
+        <p className="text-center">Loading problem...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-5xl mx-auto mt-6 px-4">
+        <Card>
+          <p className="text-red-500">Error: {error}</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!problem) {
+    return (
+      <div className="max-w-5xl mx-auto mt-6 px-4">
+        <Card>
+          <p className="text-center">Problem not found.</p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
+    <>
+    <Header />
     <div className="max-w-5xl mx-auto mt-6 px-4 space-y-6">
       {/* Problem Header */}
       <Card>
@@ -114,33 +122,11 @@ export default function ProblemPage() {
         </div>
       </Card>
 
-      {/* My Submissions */}
+      {/* My Submissions - Coming Soon */}
       <Card title="My Submissions">
-        {submissions.length === 0 ? (
-          <p className="text-gray-500">No submissions yet.</p>
-        ) : (
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="bg-gray-100 text-left text-gray-700">
-                <th className="py-2 px-3">ID</th>
-                <th className="py-2 px-3">Language</th>
-                <th className="py-2 px-3">Status</th>
-                <th className="py-2 px-3">Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {submissions.map((s) => (
-                <tr key={s.id} className="border-b hover:bg-gray-50 transition-colors">
-                  <td className="py-2 px-3">{s.id}</td>
-                  <td className="py-2 px-3">{s.language}</td>
-                  <td className="py-2 px-3">{s.status}</td>
-                  <td className="py-2 px-3">{new Date(s.time).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <p className="text-gray-500">Submissions feature coming soon!</p>
       </Card>
     </div>
+    </>
   );
 }

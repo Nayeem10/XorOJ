@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Card from "../components/Card";
 import { Link } from "react-router-dom";
+import { apiFetch } from "../api/client";
 
 export default function ProblemSet() {
   const [problems, setProblems] = useState([]);
@@ -8,13 +9,7 @@ export default function ProblemSet() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("/api/problems")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        return res.json();
-      })
+    apiFetch("/api/problems")
       .then((data) => {
         // Ensure data is an array
         if (!Array.isArray(data)) {
@@ -66,13 +61,12 @@ export default function ProblemSet() {
                     </td>
                     <td className="py-2 px-3">
                       <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          p.difficulty === "Easy"
+                        className={`px-2 py-1 text-xs rounded-full ${p.difficulty === "Easy"
                             ? "bg-green-100 text-green-700"
                             : p.difficulty === "Medium"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
                       >
                         {p.difficulty}
                       </span>

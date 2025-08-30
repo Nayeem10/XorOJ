@@ -29,7 +29,16 @@ public class Problem {
     @Min(value = 800)
     @Max(value = 4000)
     private Integer difficultyRating;
-    
+
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private int solveCount;
+
+    @Column(nullable = false, columnDefinition = "integer default 1000")
+    private int timeLimit;
+
+    @Column(nullable = false, columnDefinition = "integer default 512")
+    private int memoryLimit;
+
     @ElementCollection
     @CollectionTable(name = "problem_tags", joinColumns = @JoinColumn(name = "problem_id"))
     @Column(name = "tag")

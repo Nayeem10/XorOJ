@@ -1,5 +1,6 @@
 package com.Judge_Mental.XorOJ.controller;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,12 @@ public class ProblemController {
     
     @Autowired
     private ProblemRepository repository;
+
+    @GetMapping
+    public ResponseEntity<List<Problem>> getAllProblems() {
+        List<Problem> problems = repository.findAll();
+        return ResponseEntity.ok(problems);
+    }
 
     @GetMapping("{id}")
     public ResponseEntity<Problem> getProblemById(@PathVariable Long id) {
