@@ -3,13 +3,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/xorpic.png";
 
-// Same key we used elsewhere to store JWT
 const TOKEN_KEY = "xoroj.jwt";
 
-// Minimal JWT decoder (no crypto; just base64url decode to read payload)
+// base64url decode (no signature verify; just to read payload)
 function parseJwt(token) {
   try {
-    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const base64 = token.split(".")[1]?.replace(/-/g, "+").replace(/_/g, "/") ?? "";
     const json = decodeURIComponent(
       atob(base64)
         .split("")
@@ -27,24 +26,11 @@ export default function Header() {
 
   // theme
   const [theme, setTheme] = useState("light");
-
-  // auth & user
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
-  const [profile, setProfile] = useState(null); // optional pretty-name from server
-  const username = useMemo(() => {
-    if (!token) return null;
-    const payload = parseJwt(token);
-    // your JWT subject is the username (see JWTService.subject(username)) :contentReference[oaicite:2]{index=2}
-    return payload?.sub || null;
-  }, [token]);
-
-  // theme boot
   useEffect(() => {
     const saved = localStorage.getItem("theme") || "light";
     setTheme(saved);
     document.documentElement.setAttribute("data-theme", saved);
   }, []);
-
   const toggleTheme = () => {
     const next = theme === "light" ? "dark" : "light";
     setTheme(next);
@@ -52,78 +38,107 @@ export default function Header() {
     localStorage.setItem("theme", next);
   };
 
-  // load profile (nice display name), only if logged in
+  // auth
+  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
+  const [profile, setProfile] = useState(null);
+  const username = useMemo(() => {
+    if (!token) return null;
+    return parseJwt(token)?.sub ?? null;
+  }, [token]);
+
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      if (!username || !token) {
-        setProfile(null);
-        return;
-      }
+    async function run() {
+      if (!username || !token) { setProfile(null); return; }
       try {
-        // Protected endpoint → must include Authorization: Bearer <token>
-        // Your JWTFilter only checks this header. :contentReference[oaicite:3]{index=3}
         const res = await fetch(`/api/profile/${username}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) throw new Error("Failed to load profile");
+        if (!res.ok) throw new Error();
         const data = await res.json();
         if (!cancelled) setProfile(data);
       } catch {
         if (!cancelled) setProfile(null);
       }
     }
-    load();
-    return () => {
-      cancelled = true;
-    };
+    run();
+    return () => { cancelled = true; };
   }, [username, token]);
 
   const displayName =
     (profile?.firstName || profile?.lastName)
-      ? `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim()
+      ? `${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`.trim()
       : username || "Guest";
 
-  // logout
   const handleLogout = () => {
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     navigate("/login");
   };
 
+  // mobile menu
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const closeMobile = () => setMobileOpen(false);
+
   return (
-    <header className="navbar bg-base-200 px-6">
-      <div className="flex items-center justify-between w-full">
-        {/* Left: brand + nav */}
-        <div className="flex items-center gap-6">
-          <Link to="/" className="text-3xl font-bold flex items-center">
-            <img src={logo} alt="XorOJ Logo" className="h-8 w-8 mr-2" />
+    <header className="navbar bg-base-200 px-4 lg:px-6 sticky top-0 z-40">
+      <div className="w-full flex items-center justify-between">
+        {/* Left: brand */}
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center text-2xl lg:text-3xl font-bold">
+            <img src={logo} alt="XorOJ" className="h-7 w-7 lg:h-8 lg:w-8 mr-2" />
             XorOJ
           </Link>
-          <NavLink to="/problems" className="link link-hover">
-            Problems
-          </NavLink>
-          <NavLink to="/contests" className="link link-hover">
-            Contest
-          </NavLink>
+
+          {/* Desktop nav (re-added): visible lg+ */}
+          <nav className="hidden lg:flex items-center gap-6 ml-4">
+            <NavLink
+              to="/problems"
+              className={({ isActive }) =>
+                `link link-hover ${isActive ? "font-semibold" : "opacity-90"}`
+              }
+            >
+              Problems
+            </NavLink>
+            <NavLink
+              to="/contests"
+              className={({ isActive }) =>
+                `link link-hover ${isActive ? "font-semibold" : "opacity-90"}`
+              }
+            >
+              Contests
+            </NavLink>
+          </nav>
         </div>
 
-        {/* Right: theme + auth */}
-        <div className="flex items-center gap-4">
-          <button className="btn btn-primary" onClick={toggleTheme}>
+        {/* Right: theme + user + hamburger */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Theme toggle: emoji on mobile, full on desktop */}
+          <button
+            className="lg:hidden p-2 rounded-btn"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            title="Toggle theme"
+          >
+            {theme === "light" ? "🌙" : "☀️"}
+          </button>
+          <button
+            className="btn btn-primary hidden lg:inline-flex"
+            onClick={toggleTheme}
+          >
             {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
           </button>
 
+          {/* User menu (desktop; still fine on mobile if space allows) */}
           {username ? (
             <div className="dropdown dropdown-end">
-              <div tabIndex={0} role="button" className="btn m-1">
+              <div tabIndex={0} role="button" className="btn btn-sm">
                 {displayName}
               </div>
               <ul
                 tabIndex={0}
-                className="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow-sm border border-gray-100"
+                className="dropdown-content menu bg-base-100 rounded-box z-50 w-52 p-2 shadow border border-base-200"
               >
-                {/* Your router expects /profile/:username */} {/* :contentReference[oaicite:4]{index=4} */}
                 <li>
                   <Link to={`/profile/${username}`}>Profile</Link>
                 </li>
@@ -133,17 +148,81 @@ export default function Header() {
               </ul>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <Link to="/login" className="btn">
-                Login
-              </Link>
-              <Link to="/register" className="btn btn-outline">
-                Register
-              </Link>
+            <div className="hidden sm:flex items-center gap-2">
+              <Link to="/login" className="btn btn-sm">Login</Link>
+              <Link to="/register" className="btn btn-sm btn-outline">Register</Link>
             </div>
           )}
+
+          {/* Hamburger (mobile only) */}
+          <button
+            className="lg:hidden p-2"
+            onClick={() => setMobileOpen((s) => !s)}
+            aria-label="Open menu"
+          >
+            <span className="block w-6 h-0.5 bg-current mb-1" />
+            <span className="block w-6 h-0.5 bg-current mb-1" />
+            <span className="block w-6 h-0.5 bg-current" />
+          </button>
         </div>
       </div>
+
+      {/* Mobile overlay panel */}
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          {/* backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={closeMobile}
+            aria-hidden="true"
+          />
+          {/* sheet */}
+          <div className="absolute top-0 right-0 h-full w-72 max-w-[85%] bg-base-100 shadow-xl p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-semibold">Menu</span>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={closeMobile}
+                aria-label="Close menu"
+              >
+                ✕
+              </button>
+            </div>
+
+            <NavLink to="/problems" onClick={closeMobile} className="link link-hover text-lg">
+              Problems
+            </NavLink>
+            <NavLink to="/contests" onClick={closeMobile} className="link link-hover text-lg">
+              Contests
+            </NavLink>
+
+            <div className="divider my-2" />
+
+            {username ? (
+              <>
+                <Link to={`/profile/${username}`} onClick={closeMobile} className="link link-hover">
+                  Profile
+                </Link>
+                <button onClick={() => { closeMobile(); handleLogout(); }} className="link link-hover text-left">
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={closeMobile} className="btn btn-sm btn-primary">Login</Link>
+                <Link to="/register" onClick={closeMobile} className="btn btn-sm btn-outline">Register</Link>
+              </>
+            )}
+
+            <div className="mt-auto">
+              {/* Keep emoji toggle inside the sheet too */}
+              <button className="btn w-full" onClick={toggleTheme}>
+                {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
