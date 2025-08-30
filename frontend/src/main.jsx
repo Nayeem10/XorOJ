@@ -14,6 +14,7 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
 import ProblemSet from './pages/ProblemSet.jsx'
+import ProblemPage from './pages/ProblemPage.jsx'
 
 // ProtectedRoute
 function Protected({ element }) {
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
   { path: '/profile/:username', element: <Protected element={<ProfilePage />} /> },
 
   { path: '/problems', element: <Protected element={<ProblemSet />} /> },
+  { path: '/problems/:id', element: <Protected element={<ProblemPage />} /> },
   { path: '/create-problem', element: <Protected element={<CreateProblemPage />} /> },
 ])
 
