@@ -45,11 +45,12 @@ const router = createBrowserRouter([
   { path: '/create-problem', element: <Protected element={<CreateProblemPage />} /> },
 
   // Contest routes
-  { path: '/contest', element: <Protected element={<ContestListPage />} /> },
-  { path: '/contest/:id', element: <Protected element={<ContestPage />} /> },
-  { path: '/contest/:id/view', element: <Protected element={<ContestViewPage />} /> }, // NEW
-  { path: '/contest/:id/my-submissions', element: <Protected element={<ContestMySubmissionsPage />} /> },
-  { path: '/contest/:id/submissions', element: <Protected element={<ContestAllSubmissionsPage />} /> },
+  { path: '/contests', element: <Protected element={<ContestListPage />} /> },
+  { path: '/contests/:id', element: <Protected element={<ContestPage />} /> },
+  { path: '/contests/:id/view', element: <Protected element={<ContestViewPage />} /> },
+  { path: '/contests/:id/my-submissions', element: <Protected element={<ContestMySubmissionsPage />} /> },
+  { path: '/contests/:id/submissions', element: <Protected element={<ContestAllSubmissionsPage />} /> },
+
 ])
 
 createRoot(document.getElementById('root')).render(

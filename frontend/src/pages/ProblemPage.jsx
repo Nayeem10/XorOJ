@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../components/Header";
+import Footer from "../components/Footer";
 import Card from "../components/Card";
 import { apiFetch } from "../api/client";
 import CodeEditorPanel from "../components/CodeEditorPanel";
@@ -108,6 +109,7 @@ export default function ProblemPage() {
           <p className="text-gray-500">Submissions feature coming soon!</p>
         </Card>
       </div>
+      <Footer />
     </>
   );
 }

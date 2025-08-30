@@ -6,23 +6,43 @@ import { apiFetch } from "../api/client";
 
 export default function ContestAllSubmissionsPage() {
   const { id } = useParams(); // contest id
+  const [contest, setContest] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isRegistered, setIsRegistered] = useState(false);
   const [problemFilter, setProblemFilter] = useState("");
   const [userFilter, setUserFilter] = useState("");
 
   useEffect(() => {
-    apiFetch(`/api/contests/${id}/submissions`)
-      .then((data) => {
-        if (!Array.isArray(data)) throw new Error("Expected array of submissions");
-        setSubmissions(data);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch submissions", err);
-        setError(err.message);
-      })
-      .finally(() => setLoading(false));
+    let cancelled = false;
+
+    async function fetchData() {
+      try {
+        // Fetch contest info
+        const contestData = await apiFetch(`/api/contests/${id}`);
+        if (!cancelled) setContest(contestData);
+
+        // Fetch registration
+        const regRes = await apiFetch(`/api/contests/${id}/is-registered`);
+        if (!cancelled) setIsRegistered(regRes.registered);
+
+        // Fetch submissions
+        const subs = await apiFetch(`/api/contests/${id}/submissions`);
+        if (!Array.isArray(subs)) throw new Error("Expected array of submissions");
+        if (!cancelled) setSubmissions(subs);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Failed to load submissions", err);
+          setError(err.message);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchData();
+    return () => { cancelled = true; };
   }, [id]);
 
   const filteredSubmissions = submissions.filter(
@@ -31,9 +51,33 @@ export default function ContestAllSubmissionsPage() {
       (!userFilter || s.username.toLowerCase().includes(userFilter.toLowerCase()))
   );
 
+  // ---------------- Conditions ----------------
   if (loading) return <p className="text-center mt-6">Loading submissions…</p>;
   if (error) return <p className="text-red-500 text-center mt-6">Error: {error}</p>;
+  if (!contest) return <p className="text-red-500 text-center mt-6">Contest not found.</p>;
 
+  // Check registration
+  if (!isRegistered) {
+    return (
+      <div className="max-w-6xl mx-auto mt-6 px-4">
+        <p className="text-gray-500">You are not registered for this contest.</p>
+        <Link to={`/contests/${id}`} className="btn mt-2">Back</Link>
+      </div>
+    );
+  }
+
+  // Check contest has started
+  const startTime = new Date(contest.startTime);
+  if (Date.now() < startTime.getTime()) {
+    return (
+      <div className="max-w-6xl mx-auto mt-6 px-4">
+        <p className="text-gray-500">The contest has not started yet.</p>
+        <Link to={`/contests/${id}`} className="btn mt-2">Back</Link>
+      </div>
+    );
+  }
+
+  // ---------------- Render Submissions ----------------
   return (
     <div className="max-w-6xl mx-auto mt-6 px-4">
       <h1 className="text-2xl font-bold mb-4">All Submissions</h1>

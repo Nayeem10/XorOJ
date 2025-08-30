@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Card from "../components/Card";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../api/client";
 
@@ -32,6 +34,8 @@ export default function ProblemSet() {
   }
 
   return (
+     <>
+    <Header />
     <div className="max-w-5xl mx-auto mt-6 px-4">
       <h1 className="text-2xl font-bold mb-4">Problem Set</h1>
 
@@ -86,5 +90,8 @@ export default function ProblemSet() {
         </Card>
       )}
     </div>
+    <Footer />
+    </>
+    
   );
 }

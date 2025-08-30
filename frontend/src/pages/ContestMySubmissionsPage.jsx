@@ -9,15 +9,30 @@ export default function ContestMySubmissionsPage() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [contest, setContest] = useState(null);
 
+  // Fetch contest info first (to check registration + started)
   useEffect(() => {
-    apiFetch(`/api/contests/${id}/my-submissions`)
-      .then((data) => {
-        if (!Array.isArray(data)) throw new Error("Expected array of submissions");
-        setSubmissions(data);
+    setLoading(true);
+    Promise.all([
+      apiFetch(`/api/contests/${id}`),
+      apiFetch(`/api/contests/${id}/my-submissions`)
+    ])
+      .then(([contestData, subs]) => {
+        setContest(contestData);
+        if (!contestData.isRegistered) {
+          throw new Error("You must be registered to view submissions.");
+        }
+        if (new Date(contestData.startTime) > new Date()) {
+          throw new Error("Contest has not started yet.");
+        }
+        if (!Array.isArray(subs)) {
+          throw new Error("Expected an array of submissions.");
+        }
+        setSubmissions(subs);
       })
       .catch((err) => {
-        console.error("Failed to fetch submissions", err);
+        console.error("Failed to fetch contest submissions", err);
         setError(err.message);
       })
       .finally(() => setLoading(false));
@@ -38,47 +53,69 @@ export default function ContestMySubmissionsPage() {
                 <th className="py-2 px-3">#</th>
                 <th className="py-2 px-3">Problem</th>
                 <th className="py-2 px-3">Verdict</th>
-                <th className="py-2 px-3">Time (ms)</th>
-                <th className="py-2 px-3">Memory (KB)</th>
+                <th className="py-2 px-3">Time</th>
+                <th className="py-2 px-3">Memory</th>
                 <th className="py-2 px-3">Submitted At</th>
               </tr>
             </thead>
             <tbody>
               {submissions.map((s, i) => (
-                <tr key={s.id} className="border-b hover:bg-gray-50 transition-colors">
+                <tr
+                  key={s.id}
+                  className="border-b hover:bg-gray-50 transition-colors"
+                >
                   <td className="py-2 px-3">{i + 1}</td>
                   <td className="py-2 px-3">
-                    <Link to={`/problems/${s.problemId}`} className="text-indigo-600">
+                    <Link
+                      to={`/problems/${s.problemId}`}
+                      className="text-indigo-600"
+                    >
                       {s.problemTitle}
                     </Link>
                   </td>
-                  <td className={`py-2 px-3 font-medium ${getVerdictColor(s.verdict)}`}>
-                    {s.verdict}
+                  <td
+                    className={`py-2 px-3 font-medium ${getVerdictColor(
+                      s.verdict
+                    )}`}
+                  >
+                    {s.verdict || "—"}
                   </td>
-                  <td className="py-2 px-3">{s.time}</td>
-                  <td className="py-2 px-3">{s.memory}</td>
-                  <td className="py-2 px-3">{new Date(s.submittedAt).toLocaleString()}</td>
+                  <td className="py-2 px-3">{s.time} ms</td>
+                  <td className="py-2 px-3">{s.memory} KB</td>
+                  <td className="py-2 px-3">
+                    {new Date(s.submittedAt).toLocaleString()}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <p className="text-gray-500 py-4 text-center">You have not made any submissions yet.</p>
+          <p className="text-gray-500 py-4 text-center">
+            You have not made any submissions yet.
+          </p>
         )}
       </Card>
 
-      <Link to={`/contests/${id}`} className="btn btn-secondary mt-4">Back to Contest</Link>
+      <Link to={`/contest/${id}`} className="btn btn-secondary mt-4">
+        Back to Contest
+      </Link>
     </div>
   );
 }
 
 // Helper function to style verdicts
 function getVerdictColor(verdict) {
+  if (!verdict) return "text-gray-700";
   switch (verdict.toLowerCase()) {
-    case "accepted": return "text-green-600";
-    case "wrong answer": return "text-red-600";
-    case "runtime error": return "text-yellow-700";
-    case "time limit exceeded": return "text-orange-600";
-    default: return "text-gray-700";
+    case "accepted":
+      return "text-green-600";
+    case "wrong answer":
+      return "text-red-600";
+    case "runtime error":
+      return "text-yellow-700";
+    case "time limit exceeded":
+      return "text-orange-600";
+    default:
+      return "text-gray-700";
   }
 }

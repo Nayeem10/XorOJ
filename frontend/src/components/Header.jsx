@@ -103,7 +103,7 @@ export default function Header() {
           <NavLink to="/problems" className="link link-hover">
             Problems
           </NavLink>
-          <NavLink to="/contest" className="link link-hover">
+          <NavLink to="/contests" className="link link-hover">
             Contest
           </NavLink>
         </div>

@@ -1,85 +1,78 @@
-// src/pages/ContestPage.jsx
-import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import Card from "../components/Card.jsx";
-import CountdownTimer from "../components/CountdownTimer.jsx";
-import ContestRegisterButton from "../components/ContestRegisterButton.jsx";
+import { useEffect, useState } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { apiFetch } from "../api/client";
 
 export default function ContestPage() {
-  const { id } = useParams();
-  const [contest, setContest] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isRegistered, setIsRegistered] = useState(false);
+  const { id } = useParams()
+  const [contest, setContest] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
-    let cancelled = false;
+    async function fetchContest() {
+      try {
+        const data = await apiFetch(`/api/contests/${id}`)
+        // Require registration + contest started
+        if (!data.registered) {
+          alert('You must register for this contest.')
+          navigate(`/contests/${id}/view`)
+          return
+        }
+        if (data.status !== 'RUNNING') {
+          alert('Contest has not started yet.')
+          navigate(`/contests/${id}/view`)
+          return
+        }
+        setContest(data)
+      } catch (err) {
+        console.error('Error loading contest', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchContest()
+  }, [id, navigate])
 
-    // Fetch contest details
-    apiFetch(`/api/contests/${id}`)
-      .then((data) => {
-        if (!cancelled) setContest(data);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.message);
-      });
-
-    // Check registration
-    apiFetch(`/api/contests/${id}/is-registered`)
-      .then((res) => {
-        if (!cancelled) setIsRegistered(res.registered);
-      })
-      .catch(() => {
-        if (!cancelled) setIsRegistered(false);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [id]);
-
-  if (loading) return <p className="text-center mt-6">Loading contest…</p>;
-  if (error || !contest)
-    return (
-      <div className="max-w-6xl mx-auto mt-6 px-4">
-        <p className="text-red-500">Error loading contest: {error || "Not found"}</p>
-        <Link to="/contest" className="btn mt-4">Back to Contest List</Link>
-      </div>
-    );
-
-  const now = new Date();
-  const hasStarted = now >= new Date(contest.startTime);
+  if (loading) return <div className="p-4">Loading contest...</div>
+  if (!contest) return <div className="p-4">Contest not found</div>
 
   return (
-    <div className="max-w-6xl mx-auto mt-6 px-4 space-y-6">
-      <Card>
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">{contest.title}</h1>
-          <div className="text-gray-500">{contest.format} | {contest.visibility}</div>
-        </div>
-        <p className="mt-2">
-          <strong>Start:</strong> {new Date(contest.startTime).toLocaleString()} &nbsp;
-          <CountdownTimer startTime={contest.startTime} />
-        </p>
-        {contest.description && <p className="mt-2">{contest.description}</p>}
-      </Card>
+    <div className="p-6">
+      
+      <h1 className="text-2xl font-bold mb-2">{contest.title}</h1>
+      <p className="text-gray-600 mb-4">{contest.description}</p>
 
-      {hasStarted && (
-        <div className="flex gap-2 flex-wrap">
-          <Link to={`/contest/${id}/standings`} className="btn btn-outline">Standings</Link>
-          {isRegistered && <Link to={`/contest/${id}/view`} className="btn btn-primary">View Contest</Link>}
-        </div>
-      )}
+      <h2 className="text-xl font-semibold mb-2">Problems</h2>
+      <ul className="list-disc list-inside mb-4">
+        {contest.problems?.map(p => (
+          <li key={p.id}>
+            <Link to={`/problems/${p.id}`} className="text-blue-600 hover:underline">
+              {p.title}
+            </Link>
+          </li>
+        ))}
+      </ul>
 
-      {!isRegistered && contest.allowRegistration && (
-        <div className="mt-2">
-          <ContestRegisterButton contestId={id} initialStatus={false} />
-        </div>
-      )}
-
-      <Link to="/contest" className="btn btn-secondary mt-4">Back to Contest List</Link>
+      <div className="mt-6 flex gap-3">
+        <Link
+          to={`/contests/${contest.id}/my-submissions`}
+          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          My Submissions
+        </Link>
+        <Link
+          to={`/contests/${contest.id}/submissions`}
+          className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
+        >
+          All Submissions
+        </Link>
+        <Link
+          to={`/contests/${contest.id}/standings`}
+          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+        >
+          Standings
+        </Link>
+      </div>
     </div>
-  );
+  )
 }
