@@ -8,7 +8,7 @@ export default function Login() {
   const [params] = useSearchParams()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [err, setErr] = useState(params.get('reason') === 'unauthorized' ? 'Session expired. Please login.' : null)
+  const [err, setErr] = useState(params.get('reason') === 'unauthorized' ? 'Username or password is incorrect' : null)
 
   async function onSubmit(e) {
     e.preventDefault()
