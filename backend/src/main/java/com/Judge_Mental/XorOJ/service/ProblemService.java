@@ -13,11 +13,17 @@ public class ProblemService {
 
     @Autowired
     private ProblemRepository problemRepo;
-
+    
+    public Problem findProblemById(Long id) {
+        return problemRepo.findById(id).orElse(null);
+    }
     public List<Problem> findProblemsByDifficultyRating(Integer minRating, Integer maxRating) {
         if (minRating == null) minRating = 800;
         if (maxRating == null) maxRating = 4000;
 
         return problemRepo.findProblemsByDifficultyRatingBetween(minRating, maxRating);
+    }
+    public List<Problem> getAllProblems() {
+        return problemRepo.findAll();
     }
 }
