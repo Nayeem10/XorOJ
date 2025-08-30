@@ -22,4 +22,12 @@ public class ContestService {
     public Contest findById(Long id) {
         return contestRepo.findById(id).orElse(null);
     }
+
+    public void registerUserForContest(Long contestId, com.Judge_Mental.XorOJ.model.XUser user) {
+        Contest contest = findById(contestId);
+        if (contest != null) {
+            contest.getParticipants().add(user);
+            contestRepo.save(contest);
+        }
+    }
 }

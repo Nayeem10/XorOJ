@@ -5,7 +5,7 @@ import CountdownTimer from "./CountdownTimer.jsx";
 import { apiFetch } from "../api/client";
 
 export default function ContestCard({ contest }) {
-  const [isRegistered, setIsRegistered] = useState(contest.isRegistered);
+  const [isRegistered, setIsRegistered] = useState(contest.registered);
   const now = new Date();
   const startTime = new Date(contest.startTime);
   const endTime = new Date(contest.endTime);

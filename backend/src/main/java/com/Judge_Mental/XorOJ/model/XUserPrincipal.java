@@ -14,6 +14,9 @@ public class XUserPrincipal implements UserDetails {
     public XUserPrincipal(XUser user) {
         this.user = user;
     }
+    public XUser getUser() {
+        return user;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
