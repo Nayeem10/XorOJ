@@ -21,9 +21,19 @@ export async function apiFetch(url, options = {}) {
   const res = await fetch(url, { ...options, headers });
 
   if (res.status === 401) {
-    clearToken();
-    window.location.href = '/login?reason=unauthorized';
-    throw new Error('Unauthorized');
+    // Do NOT auto-logout globally.
+    // Let the caller decide what to do with 401.
+    const body = await (async () => {
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        try { return await res.json(); } catch {}
+      }
+      return null;
+    })();
+    const err = new Error(body?.message || 'Unauthorized');
+    err.status = 401;
+    err.code = body?.code;
+    throw err;
   }
   if (!res.ok) {
     const text = await res.text();
