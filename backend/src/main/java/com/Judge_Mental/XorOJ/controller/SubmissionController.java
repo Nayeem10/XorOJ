@@ -22,7 +22,7 @@ public class SubmissionController {
     @Autowired
     private SubmissionService submissionService;
 
-    @GetMapping("/contest/{id}/my")
+    @GetMapping("contest/{id}/my")
     public List<SubmissionResponseDTO> getSubmissionsForContest(
         @PathVariable Long id,
         @AuthenticationPrincipal(expression = "user") XUser user) {
