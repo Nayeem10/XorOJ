@@ -4,34 +4,52 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 
 import './index.css'
 
+// Pages
 import HomePage from './pages/HomePage.jsx'
 import ErrorPage from './pages/ErrorPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import CreateProblemPage from './pages/CreateProblemPage.jsx'
-
-// NEW
-import Login from './pages/Login.jsx'
-import Register from './pages/Register.jsx'
-import { AuthProvider } from './auth/AuthContext.jsx'
 import ProblemSet from './pages/ProblemSet.jsx'
 import ProblemPage from './pages/ProblemPage.jsx'
 
-// ProtectedRoute
+// Contest Pages
+import ContestListPage from './pages/ContestListPage.jsx'
+import ContestPage from './pages/ContestPage.jsx'
+import ContestViewPage from './pages/ContestViewPage.jsx'
+import ContestMySubmissionsPage from './pages/ContestMySubmissionsPage.jsx'
+import ContestAllSubmissionsPage from './pages/ContestAllSubmissionsPage.jsx'
+
+// Auth Pages
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+import { AuthProvider } from './auth/AuthContext.jsx'
+
+// ProtectedRoute component
 function Protected({ element }) {
   const token = localStorage.getItem('xoroj.jwt')
   return token ? element : <Navigate to="/login" replace />
 }
 
 const router = createBrowserRouter([
+  // Public routes
   { path: '/login', element: <Login /> },
   { path: '/register', element: <Register /> },
 
+  // Protected routes
   { path: '/', element: <Protected element={<HomePage />} />, errorElement: <ErrorPage /> },
   { path: '/profile/:username', element: <Protected element={<ProfilePage />} /> },
 
+  // Problem routes
   { path: '/problems', element: <Protected element={<ProblemSet />} /> },
   { path: '/problems/:id', element: <Protected element={<ProblemPage />} /> },
   { path: '/create-problem', element: <Protected element={<CreateProblemPage />} /> },
+
+  // Contest routes
+  { path: '/contest', element: <Protected element={<ContestListPage />} /> },
+  { path: '/contest/:id', element: <Protected element={<ContestPage />} /> },
+  { path: '/contest/:id/view', element: <Protected element={<ContestViewPage />} /> }, // NEW
+  { path: '/contest/:id/my-submissions', element: <Protected element={<ContestMySubmissionsPage />} /> },
+  { path: '/contest/:id/submissions', element: <Protected element={<ContestAllSubmissionsPage />} /> },
 ])
 
 createRoot(document.getElementById('root')).render(
@@ -39,5 +57,5 @@ createRoot(document.getElementById('root')).render(
     <AuthProvider>
       <RouterProvider router={router} />
     </AuthProvider>
-  </StrictMode>,
+  </StrictMode>
 )
