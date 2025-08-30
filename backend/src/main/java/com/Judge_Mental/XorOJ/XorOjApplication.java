@@ -29,10 +29,10 @@ public class XorOjApplication {
     ) {
         return _ -> {
             // Clear existing data
-            // submissionRepo.deleteAll();
-            // contestRepo.deleteAll();
-            // problemRepo.deleteAll();
-            // userRepo.deleteAll();
+            submissionRepo.deleteAll();
+            contestRepo.deleteAll();
+            problemRepo.deleteAll();
+            userRepo.deleteAll();
 
             // Create users
             XUser admin = new XUser();

@@ -26,13 +26,13 @@ export default function ContestAllSubmissionsPage() {
   useEffect(() => {
     setLoading(true);
 
-    apiFetch(`/api/submissions/contests/${id}/page/${pageNumber}`)
+    apiFetch(`/api/submissions/contests/${id}/page/1`)
       .then((data) => {
-        if (!Array.isArray(data.submissions)) {
-          throw new Error("Expected an array of submissions");
-        }
-        setSubmissions(data.submissions);
-        setTotalPages(data.totalPages); // Assuming the response includes totalPages
+        // if (!Array.isArray(data.submissions)) {
+        //   throw new Error("Expected an array of submissions");
+        // }
+        setSubmissions(data);
+        // setTotalPages(data.totalPages); // Assuming the response includes totalPages
       })
       .catch((err) => {
         console.error("Failed to fetch all submissions", err);
