@@ -1,4 +1,3 @@
-
 spring:
   datasource:
     url: ${POSTGRES_URL}
@@ -8,8 +7,10 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update   # or 'update' during dev if you don't want drop on shutdown else create-drop
-    show-sql: false
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
+server:
+  port: 8081
