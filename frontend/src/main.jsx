@@ -46,9 +46,8 @@ const router = createBrowserRouter([
   // Contest routes
   { path: '/contests', element: <Protected element={<ContestListPage />} /> },
   { path: '/contests/:id/view', element: <Protected element={<ContestViewPage />} /> },
-  { path: '/contests/:id/my-submissions', element: <Protected element={<ContestMySubmissionsPage />} /> },
-  { path: '/contests/:id/submissions', element: <Protected element={<ContestAllSubmissionsPage />} /> },
-
+  { path: '/contests/:id/my', element: <Protected element={<ContestMySubmissionsPage />} /> },
+  { path: '/contests/:id/submissions/:pageNumber', element: <Protected element={<ContestAllSubmissionsPage />} /> },
 ])
 
 createRoot(document.getElementById('root')).render(

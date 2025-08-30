@@ -81,17 +81,21 @@ export default function ContestViewPage() {
         )}
 
         {/* Tabs */}
-        <Card title="My Submissions">
-          <Link to={`/contests/${id}/my-submissions`} className="text-indigo-600 hover:underline">
+        <Card title="My Submissions"> 
+          <Link to={`/contests/${id}/my`} className="text-indigo-600 hover:underline">
             View My Submissions
           </Link>
         </Card>
 
         <Card title="All Submissions">
-          <Link to={`/contests/${id}/submissions`} className="text-indigo-600 hover:underline">
+          <Link
+            to={`/contests/${id}/all?page=1`} // Always go to page 1 by default
+            className="text-indigo-600 hover:underline"
+          >
             View All Submissions
           </Link>
         </Card>
+        
 
         <Card title="Standings">
           <Link to={`/contests/${id}/standings`} className="text-indigo-600 hover:underline">

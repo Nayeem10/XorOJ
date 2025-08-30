@@ -1,158 +1,178 @@
-// src/pages/ContestAllSubmissionsPage.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import Card from "../components/Card.jsx";
 import { apiFetch } from "../api/client";
+import Header from "../components/Header.jsx";
+import Footer from "../components/Footer.jsx";
 
 export default function ContestAllSubmissionsPage() {
   const { id } = useParams(); // contest id
-  const [contest, setContest] = useState(null);
+  const location = useLocation();
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [problemFilter, setProblemFilter] = useState("");
-  const [userFilter, setUserFilter] = useState("");
+  const [codePopup, setCodePopup] = useState(null); // state to manage the code popup
+  const [page, setPage] = useState(1); // Track the current page
+  const [totalPages, setTotalPages] = useState(1); // Track the total pages
 
+  // Get the page from query params, default to 1 if not found
   useEffect(() => {
-    let cancelled = false;
+    const queryParams = new URLSearchParams(location.search);
+    const pageFromUrl = parseInt(queryParams.get("page")) || 1; // Default to page 1 if not found
+    setPage(pageFromUrl);
+  }, [location.search]);
 
-    async function fetchData() {
-      try {
-        // Fetch contest info
-        const contestData = await apiFetch(`/api/contests/${id}`);
-        if (!cancelled) setContest(contestData);
+  // Fetch submissions for the current page
+  useEffect(() => {
+    setLoading(true);
 
-        // Fetch registration
-        const regRes = await apiFetch(`/api/contests/${id}/is-registered`);
-        if (!cancelled) setIsRegistered(regRes.registered);
-
-        // Fetch submissions
-        const subs = await apiFetch(`/api/contests/${id}/submissions`);
-        if (!Array.isArray(subs)) throw new Error("Expected array of submissions");
-        if (!cancelled) setSubmissions(subs);
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Failed to load submissions", err);
-          setError(err.message);
+    apiFetch(`/api/submissions/contests/${id}/page/${pageNumber}`)
+      .then((data) => {
+        if (!Array.isArray(data.submissions)) {
+          throw new Error("Expected an array of submissions");
         }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
+        setSubmissions(data.submissions);
+        setTotalPages(data.totalPages); // Assuming the response includes totalPages
+      })
+      .catch((err) => {
+        console.error("Failed to fetch all submissions", err);
+        setError(err.message);
+      })
+      .finally(() => setLoading(false));
+  }, [id, page]);
 
-    fetchData();
-    return () => { cancelled = true; };
-  }, [id]);
-
-  const filteredSubmissions = submissions.filter(
-    (s) =>
-      (!problemFilter || s.problemTitle.toLowerCase().includes(problemFilter.toLowerCase())) &&
-      (!userFilter || s.username.toLowerCase().includes(userFilter.toLowerCase()))
-  );
-
-  // ---------------- Conditions ----------------
   if (loading) return <p className="text-center mt-6">Loading submissions…</p>;
   if (error) return <p className="text-red-500 text-center mt-6">Error: {error}</p>;
-  if (!contest) return <p className="text-red-500 text-center mt-6">Contest not found.</p>;
 
-  // Check registration
-  if (!isRegistered) {
-    return (
-      <div className="max-w-6xl mx-auto mt-6 px-4">
-        <p className="text-gray-500">You are not registered for this contest.</p>
-        <Link to={`/contests/${id}`} className="btn mt-2">Back</Link>
-      </div>
-    );
-  }
-
-  // Check contest has started
-  const startTime = new Date(contest.startTime);
-  if (Date.now() < startTime.getTime()) {
-    return (
-      <div className="max-w-6xl mx-auto mt-6 px-4">
-        <p className="text-gray-500">The contest has not started yet.</p>
-        <Link to={`/contests/${id}`} className="btn mt-2">Back</Link>
-      </div>
-    );
-  }
-
-  // ---------------- Render Submissions ----------------
   return (
-    <div className="max-w-6xl mx-auto mt-6 px-4">
-      <h1 className="text-2xl font-bold mb-4">All Submissions</h1>
+    <>
+      <Header />
+      <div className="max-w-6xl mx-auto mt-6 px-4">
+        <h1 className="text-2xl font-bold mb-4">All Submissions</h1>
 
-      {/* Filters */}
-      <Card>
-        <div className="flex flex-wrap gap-4">
-          <input
-            type="text"
-            placeholder="Filter by problem"
-            value={problemFilter}
-            onChange={(e) => setProblemFilter(e.target.value)}
-            className="input input-bordered flex-1"
-          />
-          <input
-            type="text"
-            placeholder="Filter by user"
-            value={userFilter}
-            onChange={(e) => setUserFilter(e.target.value)}
-            className="input input-bordered flex-1"
-          />
-        </div>
-      </Card>
-
-      <Card>
-        {filteredSubmissions.length > 0 ? (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100 text-left text-gray-700">
-                <th className="py-2 px-3">#</th>
-                <th className="py-2 px-3">Username</th>
-                <th className="py-2 px-3">Problem</th>
-                <th className="py-2 px-3">Verdict</th>
-                <th className="py-2 px-3">Time (ms)</th>
-                <th className="py-2 px-3">Memory (KB)</th>
-                <th className="py-2 px-3">Submitted At</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSubmissions.map((s, i) => (
-                <tr key={s.id} className="border-b hover:bg-gray-50 transition-colors">
-                  <td className="py-2 px-3">{i + 1}</td>
-                  <td className="py-2 px-3">{s.username}</td>
-                  <td className="py-2 px-3">
-                    <Link to={`/problems/${s.problemId}`} className="text-indigo-600">
-                      {s.problemTitle}
-                    </Link>
-                  </td>
-                  <td className={`py-2 px-3 font-medium ${getVerdictColor(s.verdict)}`}>
-                    {s.verdict}
-                  </td>
-                  <td className="py-2 px-3">{s.time}</td>
-                  <td className="py-2 px-3">{s.memory}</td>
-                  <td className="py-2 px-3">{new Date(s.submittedAt).toLocaleString()}</td>
+        <Card>
+          {submissions.length > 0 ? (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100 text-left text-gray-700">
+                  <th className="py-2 px-3">#</th>
+                  <th className="py-2 px-3">User</th>
+                  <th className="py-2 px-3">Problem</th>
+                  <th className="py-2 px-3">Status</th>
+                  <th className="py-2 px-3">Execution Time</th>
+                  <th className="py-2 px-3">Memory Used</th>
+                  <th className="py-2 px-3">View Code</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="text-gray-500 py-4 text-center">No submissions found.</p>
-        )}
-      </Card>
+              </thead>
+              <tbody>
+                {submissions.map((s, i) => (
+                  <tr
+                    key={s.id}
+                    className="border-b hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="py-2 px-3">{(page - 1) * 20 + (i + 1)}</td>
+                    <td className="py-2 px-3">
+                      <Link
+                        to={`/users/${s.userId}`} // Assuming you have a user page for user details
+                        className="text-indigo-600"
+                      >
+                        User {s.userId}
+                      </Link>
+                    </td>
+                    <td className="py-2 px-3">
+                      <Link
+                        to={`/problems/${s.problemId}`}
+                        className="text-indigo-600"
+                      >
+                        {s.problemId}
+                      </Link>
+                    </td>
+                    <td
+                      className={`py-2 px-3 font-medium ${getVerdictColor(s.status)}`}
+                    >
+                      {s.status || "—"}
+                    </td>
+                    <td className="py-2 px-3">{s.executionTime} ms</td>
+                    <td className="py-2 px-3">{s.memoryUsed / 1024} KB</td>
+                    <td className="py-2 px-3">
+                      <button
+                        onClick={() => setCodePopup(s.code)}
+                        className="btn btn-outline btn-sm"
+                      >
+                        View Code
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-gray-500 py-4 text-center">
+              No submissions yet for this contest.
+            </p>
+          )}
+        </Card>
 
-      <Link to={`/contests/${id}`} className="btn btn-secondary mt-4">Back to Contest</Link>
-    </div>
+        {/* Pagination */}
+        <div className="flex justify-between items-center mt-4">
+          <button
+            onClick={() => setPage(Math.max(1, page - 1))}
+            disabled={page === 1}
+            className="btn btn-secondary"
+          >
+            Previous
+          </button>
+          <span className="text-gray-700">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(Math.min(totalPages, page + 1))}
+            disabled={page === totalPages}
+            className="btn btn-secondary"
+          >
+            Next
+          </button>
+        </div>
+
+        <Link to={`/contests/${id}`} className="btn btn-secondary mt-4">
+          Back to Contest
+        </Link>
+      </div>
+
+      {/* Code Popup */}
+      {codePopup && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-10">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-2/3">
+            <h3 className="text-xl font-semibold mb-4">Submitted Code</h3>
+            <pre className="overflow-x-auto">{codePopup}</pre>
+            <button
+              onClick={() => setCodePopup(null)}
+              className="mt-4 btn btn-secondary"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      <Footer />
+    </>
   );
 }
 
 // Helper function to style verdicts
 function getVerdictColor(verdict) {
+  if (!verdict) return "text-gray-700";
   switch (verdict.toLowerCase()) {
-    case "accepted": return "text-green-600";
-    case "wrong answer": return "text-red-600";
-    case "runtime error": return "text-yellow-700";
-    case "time limit exceeded": return "text-orange-600";
-    default: return "text-gray-700";
+    case "accepted":
+      return "text-green-600";
+    case "wrong answer":
+      return "text-red-600";
+    case "runtime error":
+      return "text-yellow-700";
+    case "time limit exceeded":
+      return "text-orange-600";
+    default:
+      return "text-gray-700";
   }
 }
