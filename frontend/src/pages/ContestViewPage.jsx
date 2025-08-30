@@ -16,16 +16,11 @@ export default function ContestViewPage() {
     let cancelled = false;
 
     // Fetch contest and registration status
-    apiFetch(`/api/contests/${id}`)
+    apiFetch(`/api/contests/${id}/details`)
       .then((data) => {
         if (!cancelled) setContest(data);
       })
       .catch((err) => { if (!cancelled) setError(err.message); });
-
-    apiFetch(`/api/contests/${id}/is-registered`)
-      .then((res) => { if (!cancelled) setIsRegistered(res.registered); })
-      .catch(() => { if (!cancelled) setIsRegistered(false); })
-      .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
   }, [id]);

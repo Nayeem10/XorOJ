@@ -25,8 +25,7 @@ public class ContestController {
 
     @GetMapping
     public List<ContestResponseDTO> getAllContests(
-        @AuthenticationPrincipal(expression = "user") XUser user) {  // <-- changed
-        System.out.println(user);
+        @AuthenticationPrincipal(expression = "user") XUser user) {
 
         List<Contest> contests = contestService.getAllContests();
         return contests.stream()
@@ -37,18 +36,25 @@ public class ContestController {
     @GetMapping("/{id}")
     public ContestResponseDTO getContestById(
         @PathVariable Long id,
-        @AuthenticationPrincipal(expression = "user") XUser user) {  // <-- changed
+        @AuthenticationPrincipal(expression = "user") XUser user) {
 
-        System.out.println(user);
         Contest contest = contestService.findById(id);
         return ContestResponseDTO.fromContest(contest, user != null ? user.getId() : null);
+    }
+
+    @GetMapping("/{id}/details")
+    public Contest getContestDetails(
+        @PathVariable Long id,
+        @AuthenticationPrincipal(expression = "user") XUser user) {
+
+        Contest contest = contestService.findById(id);
+        return contest;
     }
 
     @PostMapping("/{id}/register")
     public void registerForContest(
         @PathVariable Long id,
-        @AuthenticationPrincipal(expression = "user") XUser user) {  // <-- changed
-        System.out.println(user);
+        @AuthenticationPrincipal(expression = "user") XUser user) {
 
         if (user == null) throw new IllegalStateException("User must be authenticated to register for a contest");
         contestService.registerUserForContest(id, user);
