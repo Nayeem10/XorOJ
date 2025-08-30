@@ -12,34 +12,23 @@ export default function ContestAllSubmissionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [codePopup, setCodePopup] = useState(null); // state to manage the code popup
-  const [page, setPage] = useState(1); // Track the current page
-  const [totalPages, setTotalPages] = useState(1); // Track the total pages
-
-  // Get the page from query params, default to 1 if not found
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const pageFromUrl = parseInt(queryParams.get("page")) || 1; // Default to page 1 if not found
-    setPage(pageFromUrl);
-  }, [location.search]);
+  const [pageNumber, setPageNumber] = useState(1); // Track the current page
+  const [totalPages, setTotalPages] = useState(5); // Track the total pages
 
   // Fetch submissions for the current page
   useEffect(() => {
     setLoading(true);
 
-    apiFetch(`/api/submissions/contests/${id}/page/1`)
+    apiFetch(`/api/submissions/contests/${id}/page/${pageNumber}`)
       .then((data) => {
-        // if (!Array.isArray(data.submissions)) {
-        //   throw new Error("Expected an array of submissions");
-        // }
         setSubmissions(data);
-        // setTotalPages(data.totalPages); // Assuming the response includes totalPages
       })
       .catch((err) => {
         console.error("Failed to fetch all submissions", err);
         setError(err.message);
       })
       .finally(() => setLoading(false));
-  }, [id, page]);
+  }, [id, pageNumber]);
 
   if (loading) return <p className="text-center mt-6">Loading submissions…</p>;
   if (error) return <p className="text-red-500 text-center mt-6">Error: {error}</p>;
@@ -70,7 +59,7 @@ export default function ContestAllSubmissionsPage() {
                     key={s.id}
                     className="border-b hover:bg-gray-50 transition-colors"
                   >
-                    <td className="py-2 px-3">{(page - 1) * 20 + (i + 1)}</td>
+                    <td className="py-2 px-3">{(pageNumber - 1) * 20 + (i + 1)}</td>
                     <td className="py-2 px-3">
                       <Link
                         to={`/users/${s.userId}`} // Assuming you have a user page for user details
@@ -116,25 +105,25 @@ export default function ContestAllSubmissionsPage() {
         {/* Pagination */}
         <div className="flex justify-between items-center mt-4">
           <button
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
+            onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
+            disabled={pageNumber === 1}
             className="btn btn-secondary"
           >
             Previous
           </button>
           <span className="text-gray-700">
-            Page {page} of {totalPages}
+            Page {pageNumber} of {totalPages}
           </span>
           <button
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page === totalPages}
+            onClick={() => setPageNumber(Math.min(totalPages, pageNumber + 1))}
+            disabled={pageNumber === totalPages}
             className="btn btn-secondary"
           >
             Next
           </button>
         </div>
 
-        <Link to={`/contests/${id}`} className="btn btn-secondary mt-4">
+        <Link to={`/contests/${id}/view`} className="btn btn-secondary mt-4">
           Back to Contest
         </Link>
       </div>
