@@ -10,4 +10,5 @@ import com.Judge_Mental.XorOJ.model.Submission;
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     public Submission findSubmissionById(Long id);
     List<Submission> findByUserIdAndContestId(Long userId, Long contestId);
+    List<Submission> findByContestIdOrderBySubmissionTimeDesc(Long contestId);
 }

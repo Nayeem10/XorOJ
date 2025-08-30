@@ -25,4 +25,20 @@ public class SubmissionService {
     public List<Submission> getSubmissionsByUserIDandContestID(Long userId, Long contestId) {
         return submissionRepository.findByUserIdAndContestId(userId, contestId);
     }
+
+    public List<Submission> getPaginatedContestSubmissions(Long contestId, int pageNumber) {
+        if (pageNumber < 1) {
+            return List.of();
+        }
+        
+        List<Submission> allSubmissions = submissionRepository.findByContestIdOrderBySubmissionTimeDesc(contestId);
+        int startIndex = (pageNumber - 1) * 20;
+        
+        if (startIndex >= allSubmissions.size()) {
+            return List.of();
+        }
+        
+        int endIndex = Math.min(startIndex + 20, allSubmissions.size());
+        return allSubmissions.subList(startIndex, endIndex);
+    }
 }

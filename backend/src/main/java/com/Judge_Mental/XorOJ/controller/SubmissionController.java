@@ -22,7 +22,7 @@ public class SubmissionController {
     @Autowired
     private SubmissionService submissionService;
 
-    @GetMapping("contest/{id}/my")
+    @GetMapping("contests/{id}/my")
     public List<SubmissionResponseDTO> getSubmissionsForContest(
         @PathVariable Long id,
         @AuthenticationPrincipal(expression = "user") XUser user) {
@@ -31,5 +31,16 @@ public class SubmissionController {
         return submissions.stream()
            .map(SubmissionResponseDTO::fromSubmission)
            .collect(Collectors.toList());
-   }
+    }
+
+    @GetMapping("contests/{id}/page/{pageNumber}")
+    public List<SubmissionResponseDTO> getPaginatedSubmissions(
+        @PathVariable Long id,
+        @PathVariable int pageNumber) {
+        
+        List<Submission> submissions = submissionService.getPaginatedContestSubmissions(id, pageNumber);
+        return submissions.stream()
+           .map(SubmissionResponseDTO::fromSubmission)
+           .collect(Collectors.toList());
+    }
 }
