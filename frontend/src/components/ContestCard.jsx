@@ -42,12 +42,12 @@ export default function ContestCard({ contest }) {
           </button>
         )}
         {hasStarted && (
-          <Link to={`/contest/${contest.id}/standings`} className="btn btn-outline btn-sm">
+          <Link to={`/contests/${contest.id}/standings`} className="btn btn-outline btn-sm">
             Standings
           </Link>
         )}
         {isRegistered && hasStarted && (
-          <Link to={`/contest/${contest.id}/view`} className="btn btn-primary btn-sm">
+          <Link to={`/contests/${contest.id}/view`} className="btn btn-primary btn-sm">
             Enter
           </Link>
         )}

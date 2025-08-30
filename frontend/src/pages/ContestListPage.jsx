@@ -1,6 +1,9 @@
 // src/pages/ContestListPage.jsx
 import React, { useEffect, useState } from "react";
 import { apiFetch } from "../api/client";
+import Header from "../components/Header.jsx";
+import Footer from "../components/Footer.jsx";
+
 import ContestCard from "../components/ContestCard.jsx";
 
 export default function ContestListPage() {
@@ -22,6 +25,8 @@ export default function ContestListPage() {
   if (error) return <p className="text-red-500 text-center mt-6">Error: {error}</p>;
 
   return (
+    <>
+    <Header />
     <div className="max-w-6xl mx-auto mt-6 px-4 space-y-6">
       <h1 className="text-2xl font-bold mb-4">Contests</h1>
       {contests.length === 0 ? (
@@ -32,5 +37,7 @@ export default function ContestListPage() {
         ))
       )}
     </div>
+    <Footer />
+   </>
   );
 }

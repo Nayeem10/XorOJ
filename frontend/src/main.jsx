@@ -14,7 +14,6 @@ import ProblemPage from './pages/ProblemPage.jsx'
 
 // Contest Pages
 import ContestListPage from './pages/ContestListPage.jsx'
-import ContestPage from './pages/ContestPage.jsx'
 import ContestViewPage from './pages/ContestViewPage.jsx'
 import ContestMySubmissionsPage from './pages/ContestMySubmissionsPage.jsx'
 import ContestAllSubmissionsPage from './pages/ContestAllSubmissionsPage.jsx'
@@ -46,7 +45,6 @@ const router = createBrowserRouter([
 
   // Contest routes
   { path: '/contests', element: <Protected element={<ContestListPage />} /> },
-  { path: '/contests/:id', element: <Protected element={<ContestPage />} /> },
   { path: '/contests/:id/view', element: <Protected element={<ContestViewPage />} /> },
   { path: '/contests/:id/my-submissions', element: <Protected element={<ContestMySubmissionsPage />} /> },
   { path: '/contests/:id/submissions', element: <Protected element={<ContestAllSubmissionsPage />} /> },
