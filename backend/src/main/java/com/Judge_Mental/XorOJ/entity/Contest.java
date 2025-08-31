@@ -29,11 +29,9 @@ public class Contest {
     @Column(nullable = false)
     private LocalDateTime endTime;
 
-    private boolean isActive = true;
-
     private Long authorId;
 
-    @ManyToMany
+    @OneToMany
     @JoinTable(
         name = "contest_problems",
         joinColumns = @JoinColumn(name = "contest_id"),

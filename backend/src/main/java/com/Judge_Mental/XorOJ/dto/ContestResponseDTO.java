@@ -1,20 +1,25 @@
 package com.Judge_Mental.XorOJ.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 import com.Judge_Mental.XorOJ.entity.Contest;
+import com.Judge_Mental.XorOJ.entity.Contest.ContestStatus;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ContestResponseDTO {
     private Long id;
     private String title;
     private String description;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private boolean isActive;
+    private ContestStatus status;
     private int duration;
-    private boolean isRegistered;
 
     public static ContestResponseDTO fromContest(Contest contest, Long userId) {
         ContestResponseDTO dto = new ContestResponseDTO();
@@ -23,12 +28,8 @@ public class ContestResponseDTO {
         dto.setDescription(contest.getDescription());
         dto.setStartTime(contest.getStartTime());
         dto.setEndTime(contest.getEndTime());
-        dto.setActive(contest.isActive());
+        dto.setStatus(contest.getStatus());
         dto.setDuration(contest.getDuration());
-        
-        dto.setRegistered(contest.getParticipants().stream()
-            .anyMatch(user -> user.getId().equals(userId)));
-        
         return dto;
     }
 }

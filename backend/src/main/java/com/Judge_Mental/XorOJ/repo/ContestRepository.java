@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.Judge_Mental.XorOJ.dto.ContestResponseDTO;
 import com.Judge_Mental.XorOJ.entity.Contest;
 
 @Repository
@@ -34,4 +35,12 @@ public interface ContestRepository extends JpaRepository<Contest, Long> {
     List<Long> findProblemIds(@Param("id") Long contestId);
 
     List<Contest> findContestsByAuthorId(Long authorId);
+
+    @Query("""
+      select new com.Judge_Mental.XorOJ.dto.ContestResponseDTO(
+        c.id, c.title, c.description, c.startTime, c.endTime, c.status, c.duration
+      )
+      from Contest c join c.problems p where p.id = :problemId
+    """)
+    ContestResponseDTO findContestByProblemId(@Param("problemId") Long problemId);
 }

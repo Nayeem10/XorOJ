@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,10 +29,22 @@ public class JudgePanelController {
     @Autowired
     private ContestService contestService;
 
-    @PostMapping("/problems/create")
+    @PostMapping("/problems/init")
     public ResponseEntity<Problem> createProblem(@RequestBody Problem problem) {
         Problem createdProblem = problemService.createProblem(problem);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProblem);
+    }
+
+    @PostMapping("/problems/update")
+    public ResponseEntity<Problem> updateProblem(@RequestBody Problem problem) {
+        Problem updatedProblem = problemService.updateProblem(problem);
+        return ResponseEntity.ok(updatedProblem);
+    }
+
+    @GetMapping("/problems/{id}")
+    public ResponseEntity<Problem> getProblemById(@PathVariable Long id, @AuthenticationPrincipal(expression = "user") XUser user) {
+        Problem problem = problemService.findProblemByIdAndAuthorId(id, user.getId());
+        return ResponseEntity.ok(problem);
     }
 
     @GetMapping("/problems/my")
