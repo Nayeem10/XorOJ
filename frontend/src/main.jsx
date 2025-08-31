@@ -14,7 +14,11 @@ import ProfilePage from './pages/ProfilePage.jsx'
 import CreateProblemPage from './pages/CreateProblemPage.jsx'
 import ProblemSet from './pages/ProblemSet.jsx'
 import ProblemPage from './pages/ProblemPage.jsx'
+
+// Author Pages
 import AuthorPage from './pages/AuthorPage.jsx'
+import AuthorMyProblems from './pages/AuthorMyProblems.jsx'
+import AuthorMyContests from './pages/AuthorMyContests.jsx'
 
 // Contest Pages
 import ContestListPage from './pages/ContestListPage.jsx'
@@ -49,6 +53,8 @@ const router = createBrowserRouter([
 
       // Author
       { path: 'author', element: <AuthorPage /> },
+      { path: 'author/problems', element: <AuthorMyProblems /> },
+      { path: 'author/contests', element: <AuthorMyContests /> }, 
 
       // Profile
       { path: 'profile/:username', element: <ProfilePage /> },

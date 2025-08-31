@@ -1,8 +1,6 @@
 // src/pages/ContestListPage.jsx
 import React, { useEffect, useState } from "react";
 import { apiFetch } from "../api/client";
-import Header from "../components/Header.jsx";
-import Footer from "../components/Footer.jsx";
 
 import ContestCard from "../components/ContestCard.jsx";
 
