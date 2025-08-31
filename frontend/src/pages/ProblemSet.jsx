@@ -61,14 +61,13 @@ export default function ProblemSet() {
     <div className="max-w-7xl mx-auto mt-6 px-4">
       {/* Top bar: title + mobile filters button */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Problem Set</h1>
-        {/* hamburger for small screens -> opens filters/pay-attention */}
+        <h1 className="text-2xl font-bold text-center">Problem Set</h1>
+        {/* hamburger for small screens -> opens filters */}
         <button
           className="lg:hidden p-2 rounded-md border"
-          style={{ borderColor: 'var(--colour-5)' }}
+          style={{ borderColor: "var(--colour-5)" }}
           aria-label="Open filters"
           onClick={() => setFiltersOpen(true)}
-          title="Filters"
         >
           <svg
             className="w-6 h-6"
@@ -81,16 +80,16 @@ export default function ProblemSet() {
             aria-hidden="true"
           >
             {/* sliders-horizontal icon */}
-            <line x1="21" y1="4"  x2="14" y2="4" />
-            <line x1="10" y1="4"  x2="3"  y2="4" />
-            <circle cx="12" cy="4"  r="2" />
-            
+            <line x1="21" y1="4" x2="14" y2="4" />
+            <line x1="10" y1="4" x2="3" y2="4" />
+            <circle cx="12" cy="4" r="2" />
+
             <line x1="21" y1="12" x2="12" y2="12" />
-            <line x1="8"  y1="12" x2="3"  y2="12" />
-            <circle cx="8"  cy="12" r="2" />
-            
+            <line x1="8" y1="12" x2="3" y2="12" />
+            <circle cx="8" cy="12" r="2" />
+
             <line x1="21" y1="20" x2="16" y2="20" />
-            <line x1="12" y1="20" x2="3"  y2="20" />
+            <line x1="12" y1="20" x2="3" y2="20" />
             <circle cx="16" cy="20" r="2" />
           </svg>
         </button>
@@ -107,10 +106,10 @@ export default function ProblemSet() {
               <table className="w-full table-fixed">
                 {/* Make narrow columns fixed so the Title column gets the rest */}
                 <colgroup>
-                  <col style={{ width: "3.5rem" }} />   {/* # */}
-                  <col />                               {/* Title (flex) */}
-                  <col style={{ width: "5.5rem" }} />   {/* Difficulty */}
-                  <col style={{ width: "5rem" }} />     {/* Solved */}
+                  <col style={{ width: "3.5rem" }} /> {/* # */}
+                  <col /> {/* Title (flex) */}
+                  <col style={{ width: "5.5rem" }} /> {/* Difficulty */}
+                  <col style={{ width: "5rem" }} /> {/* Solved */}
                 </colgroup>
 
                 <thead>
@@ -130,7 +129,7 @@ export default function ProblemSet() {
                           <div className="flex flex-wrap items-center gap-1 md:gap-2">
                             <Link
                               to={`/problems/${p.id}`}
-                              className="text-indigo-600 hover:underline"
+                              className="text-gray-600 hover:text-indigo-600"
                             >
                               {p.title}
                             </Link>
@@ -170,8 +169,8 @@ export default function ProblemSet() {
         {/* SIDEBAR (visible on lg+) */}
         <aside className="hidden lg:block space-y-4">
           <div className="panel">
-            <h3 className="font-semibold mb-3">→ Pay attention</h3>
-            <div className="text-sm">
+            <h3 className="font-semibold text-center mb-3">Stay Updated</h3>
+            <div className="text-sm text-center">
               <div className="font-medium mb-1">Before contest</div>
               <Link to="/contests" className="text-indigo-600 hover:underline">
                 View upcoming contests
@@ -180,11 +179,11 @@ export default function ProblemSet() {
           </div>
 
           <div className="panel">
-            <h3 className="font-semibold mb-3">→ Filter Problems</h3>
+            <h3 className="font-semibold text-center mb-3">Filter Problems</h3>
             <div className="text-sm space-y-3">
               <div>
                 <div className="mb-1">Difficulty:</div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 justify-center">
                   <input
                     type="number"
                     placeholder="min"
@@ -214,7 +213,7 @@ export default function ProblemSet() {
                 />
               </div>
 
-              <button onClick={applyFilters} className="btn btn-sm">
+              <button onClick={applyFilters} className="btn btn-sm w-full">
                 Apply
               </button>
             </div>
@@ -232,7 +231,6 @@ export default function ProblemSet() {
           />
           <div className="absolute top-0 right-0 h-full w-80 max-w-[85%] shadow-xl p-4 panel flex flex-col gap-4 bg-base-100">
             <div className="flex items-center justify-between">
-              <span className="font-semibold">Filters</span>
               <button
                 className="btn btn-ghost btn-sm"
                 onClick={() => setFiltersOpen(false)}
@@ -243,8 +241,8 @@ export default function ProblemSet() {
             </div>
 
             <div>
-              <h3 className="font-semibold mb-2">→ Pay attention</h3>
-              <div className="text-sm">
+              <h3 className="font-semibold text-center mb-2">Stay Updated</h3>
+              <div className="text-sm text-center">
                 <div className="font-medium mb-1">Before contest</div>
                 <Link
                   to="/contests"
@@ -257,7 +255,7 @@ export default function ProblemSet() {
             </div>
 
             <div>
-              <h3 className="font-semibold mb-2">→ Filter Problems</h3>
+              <h3 className="font-semibold text-center mb-2">Filter Problems</h3>
               <div className="text-sm space-y-3">
                 <div>
                   <div className="mb-1">Difficulty:</div>

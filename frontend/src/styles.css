@@ -131,3 +131,63 @@ header, footer {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+
+/* Problem Header (Title and Info) */
+.problem-header {
+  background-color: var(--colour-1); /* Same background color as Problem Statement */
+  border: 1px solid var(--colour-5);  /* Same border color as Problem Statement */
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px var(--colour-6);
+}
+
+.problem-header h1 {
+  color: var(--colour-2); /* Title text color */
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.problem-header .details {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--colour-2); /* Info color (Primary Text) */
+}
+
+/* Problem Statement */
+.problem-statement-card {
+  background-color: var(--colour-1); /* Same background color */
+  border: 1px solid var(--colour-5);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px var(--colour-6);
+}
+
+.problem-statement-card h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--colour-2); /* Heading color */
+}
+
+.problem-statement-card .p {
+  line-height: 1.6;
+  color: var(--colour-2); /* Body text color */
+}
+
+
+/* Resizer styles for SplitPane */
+.Resizer {
+  background: var(--colour-5);
+  opacity: 0.6;
+  z-index: 10;
+  box-sizing: border-box;
+  background-clip: padding-box;
+}
+
+.Resizer:hover {
+  transition: all 0.2s ease;
+  opacity: 1;
+  cursor: col-resize;
+}

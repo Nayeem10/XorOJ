@@ -1,17 +1,18 @@
 // src/pages/ProblemPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import Card from "../components/Card";
 import { apiFetch } from "../api/client";
 import CodeEditorPanel from "../components/CodeEditorPanel";
+import "../styles.css";
 
 export default function ProblemPage() {
-  const { cid , pid } = useParams();
+  const { pid } = useParams();
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // submission UI state (kept here so page can control spinners/messages)
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -28,84 +29,68 @@ export default function ProblemPage() {
       });
   }, [pid]);
 
-  // Will receive { code, language } from CodeEditorPanel
   const handleSubmit = ({ code, language }) => {
     setSubmitting(true);
     setMessage(null);
-
-    // TODO: replace with your real submit endpoint:
-    // await apiFetch('/api/submissions', { method:'POST', body: JSON.stringify({ problemId:id, code, language })})
     setTimeout(() => {
       setMessage("Submission feature coming soon!");
       setSubmitting(false);
     }, 1000);
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto mt-6 px-4">
-        <p className="text-center">Loading problem...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-5xl mx-auto mt-6 px-4">
-        <Card>
-          <p className="text-red-500">Error: {error}</p>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!problem) {
-    return (
-      <div className="max-w-5xl mx-auto mt-6 px-4">
-        <Card>
-          <p className="text-center">Problem not found.</p>
-        </Card>
-      </div>
-    );
-  }
+  if (loading) return <p className="text-center mt-6">Loading problem...</p>;
+  if (error) return <p className="text-red-500 mt-6 text-center">Error: {error}</p>;
+  if (!problem) return <p className="text-center mt-6">Problem not found.</p>;
 
   return (
-    <>
-      <div className="max-w-5xl mx-auto mt-6 px-4 space-y-6">
-        {/* Problem Header */}
-        <Card>
-          <h1 className="text-2xl font-bold text-gray-800">{problem.title}</h1>
-          <div className="flex flex-wrap gap-3 mt-2 text-sm text-gray-500">
-            <span>Author: {problem.author}</span>
-            <span>Time Limit: {problem.timeLimit} sec</span>
-            <span>Memory Limit: {problem.memoryLimit} MB</span>
+    <div className="h-[calc(100vh-4rem)] px-2 py-4">
+      <PanelGroup direction="horizontal">
+        {/* LEFT SIDE - Problem Details */}
+        <Panel defaultSize={50} minSize={30}>
+          <div className="space-y-6 pr-3 h-full overflow-auto">
+            <Card className="problem-header">
+              <div className="text-center">
+                <h1 className="text-3xl font-bold">{problem.title}</h1>
+                <div className="flex justify-center gap-6 mt-2 text-sm details">
+                  <span>Author: {problem.author}</span>
+                  <span>Time Limit: {problem.timeLimit} sec</span>
+                  <span>Memory Limit: {problem.memoryLimit} MB</span>
+                </div>
+              </div>
+            </Card>
+
+          <Card className="problem-statement-card" title="Problem Statement">
+            <div
+              className="prose max-w-none"
+              dangerouslySetInnerHTML={{ __html: problem.statement }}
+            />
+          </Card>
+
+          <Card title="Tutorial / Notes">
+            <p className="text-gray-500">Tutorial feature coming soon!</p>
+          </Card>
+        </div>
+        </Panel>
+
+        <PanelResizeHandle className="w-2 bg-gray-200 hover:bg-gray-300 transition-colors" />
+
+        {/* RIGHT SIDE - Code Editor */}
+        <Panel defaultSize={50} minSize={30}>
+          <div className="h-full pl-3 overflow-auto">
+            <Card title="Submit Solution" className="h-full flex flex-col">
+              <div className="flex-1">
+                <CodeEditorPanel
+                  initialCode={"// Write your code here\n"}
+                  initialLanguage="cpp"
+                  submitting={submitting}
+                  message={message}
+                  onSubmit={handleSubmit}
+                />
+              </div>
+            </Card>
           </div>
-        </Card>
-
-        {/* Problem Statement */}
-        <Card title="Problem Statement">
-          <div
-            className="prose max-w-none text-gray-700"
-            dangerouslySetInnerHTML={{ __html: problem.statement }}
-          />
-        </Card>
-
-        {/* Submit Panel (componentized) */}
-        <Card title="Submit Solution">
-          <CodeEditorPanel
-            initialCode={"// Write your code here\n"}
-            initialLanguage="cpp"
-            submitting={submitting}
-            message={message}
-            onSubmit={handleSubmit}
-          />
-        </Card>
-
-        {/* My Submissions - Coming Soon */}
-        <Card title="My Submissions">
-          <p className="text-gray-500">Submissions feature coming soon!</p>
-        </Card>
-      </div>
-    </>
+        </Panel>
+      </PanelGroup>
+    </div>
   );
 }
