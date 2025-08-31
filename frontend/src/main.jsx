@@ -21,6 +21,7 @@ import ContestListPage from './pages/ContestListPage.jsx'
 import ContestViewPage from './pages/ContestViewPage.jsx'
 import ContestMySubmissionsPage from './pages/ContestMySubmissionsPage.jsx'
 import ContestAllSubmissionsPage from './pages/ContestAllSubmissionsPage.jsx'
+import ContestStandingsPage from "./pages/ContestStandingsPage.jsx";
 
 // Auth Pages
 import Login from './pages/Login.jsx'
@@ -63,6 +64,7 @@ const router = createBrowserRouter([
       { path: 'contests/:id/problems/:pid', element: <ProblemPage /> },
       { path: 'contests/:id/my', element: <ContestMySubmissionsPage /> },
       { path: 'contests/:id/submissions/:pageNumber', element: <ContestAllSubmissionsPage /> },
+      { path: 'contests/:id/standings', element: <ContestStandingsPage /> } 
     ],
   },
 ])
