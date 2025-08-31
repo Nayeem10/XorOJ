@@ -44,19 +44,16 @@ export default function ContestViewPage() {
   if (now < startTime) {
     return (
       <>
-        <Header />
         <div className="max-w-6xl mx-auto mt-6 px-4">
           <p className="text-gray-500">Contest has not started yet.</p>
           <Link to={`/contests`} className="btn mt-2">Back to Contests</Link>
         </div>
-        <Footer />
       </>
     );
   }
 
   return (
     <>
-      <Header />
       <div className="max-w-6xl mx-auto mt-6 px-4 space-y-6">
         {/* Contest Header */}
         <Card>
@@ -105,7 +102,6 @@ export default function ContestViewPage() {
 
         <Link to={`/contests`} className="btn btn-secondary mt-4">Back to Contests</Link>
       </div>
-      <Footer />
     </>
   );
 }

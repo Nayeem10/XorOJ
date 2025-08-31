@@ -73,7 +73,6 @@ export default function ProblemPage() {
 
   return (
     <>
-      <Header />
       <div className="max-w-5xl mx-auto mt-6 px-4 space-y-6">
         {/* Problem Header */}
         <Card>
@@ -109,7 +108,6 @@ export default function ProblemPage() {
           <p className="text-gray-500">Submissions feature coming soon!</p>
         </Card>
       </div>
-      <Footer />
     </>
   );
 }

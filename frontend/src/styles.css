@@ -1,0 +1,30 @@
+/* styles.css */
+
+/* Light Theme Background */
+html[data-theme='light'] {
+  --colour-1: #F8FFF4;  /* Light background color */
+  --colour-2: #333333;    /* Text color for light mode */
+  --colour-3: #fafac6c2;  /* Header background color for light mode */
+  --colour-4: #000000;  /* Header text color for light mode */
+}
+
+/* Dark Theme Background */
+html[data-theme='dark'] {
+  --colour-1: #175eed;  /* Dark background color */
+  --colour-2: #f0f4f8;    /* Text color for dark mode */
+  --colour-3: #2d3748;  /* Header background color for dark mode */
+  --colour-4: #ffffff;  /* Header text color for dark mode */
+}
+
+/* Apply background color globally */
+body {
+  background-color: var(--colour-1);
+  color: var(--colour-2);
+  transition: background-color 0.3s ease, color 0.3s ease;  /* Smooth transition */
+}
+
+
+header, footer {
+  background-color: var(--colour-3);  /* Header background color controlled by theme */
+  color: var(--colour-4);  /* Header text color controlled by theme */
+}

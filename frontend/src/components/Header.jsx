@@ -2,10 +2,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/xorpic.png";
+import "../styles.css";
 
 const TOKEN_KEY = "xoroj.jwt";
 
-// base64url decode (no signature verify; just to read payload)
 function parseJwt(token) {
   try {
     const base64 = token.split(".")[1]?.replace(/-/g, "+").replace(/_/g, "/") ?? "";
@@ -41,10 +41,7 @@ export default function Header() {
   // auth
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
   const [profile, setProfile] = useState(null);
-  const username = useMemo(() => {
-    if (!token) return null;
-    return parseJwt(token)?.sub ?? null;
-  }, [token]);
+  const username = useMemo(() => (token ? parseJwt(token)?.sub ?? null : null), [token]);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,12 +73,11 @@ export default function Header() {
     navigate("/login");
   };
 
-  // mobile menu
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeMobile = () => setMobileOpen(false);
 
   return (
-    <header className="navbar bg-base-200 px-4 lg:px-6 sticky top-0 z-40">
+    <header className="navbar px-4 lg:px-6 sticky top-0 z-40">
       <div className="w-full flex items-center justify-between">
         {/* Left: brand */}
         <div className="flex items-center gap-3">
@@ -90,7 +86,7 @@ export default function Header() {
             XorOJ
           </Link>
 
-          {/* Desktop nav (re-added): visible lg+ */}
+          {/* Desktop nav: visible lg+ */}
           <nav className="hidden lg:flex items-center gap-6 ml-4">
             <NavLink
               to="/problems"
@@ -108,12 +104,21 @@ export default function Header() {
             >
               Contests
             </NavLink>
+            {/* Author goes to /author */}
+            <NavLink
+              to="/author"
+              className={({ isActive }) =>
+                `link link-hover ${isActive ? "font-semibold" : "opacity-90"}`
+              }
+            >
+              Author
+            </NavLink>
           </nav>
         </div>
 
         {/* Right: theme + user + hamburger */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Theme toggle: emoji on mobile, full on desktop */}
+          {/* Theme toggle */}
           <button
             className="lg:hidden p-2 rounded-btn"
             onClick={toggleTheme}
@@ -122,16 +127,13 @@ export default function Header() {
           >
             {theme === "light" ? "🌙" : "☀️"}
           </button>
-          <button
-            className="btn btn-primary hidden lg:inline-flex"
-            onClick={toggleTheme}
-          >
+          <button className="btn btn-primary hidden lg:inline-flex" onClick={toggleTheme}>
             {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
           </button>
 
-          {/* User menu (desktop; still fine on mobile if space allows) */}
+          {/* User menu: hide on mobile; show only lg+ */}
           {username ? (
-            <div className="dropdown dropdown-end">
+            <div className="dropdown dropdown-end hidden lg:block">
               <div tabIndex={0} role="button" className="btn btn-sm">
                 {displayName}
               </div>
@@ -139,12 +141,8 @@ export default function Header() {
                 tabIndex={0}
                 className="dropdown-content menu bg-base-100 rounded-box z-50 w-52 p-2 shadow border border-base-200"
               >
-                <li>
-                  <Link to={`/profile/${username}`}>Profile</Link>
-                </li>
-                <li>
-                  <button onClick={handleLogout}>Logout</button>
-                </li>
+                <li><Link to={`/profile/${username}`}>Profile</Link></li>
+                <li><button onClick={handleLogout}>Logout</button></li>
               </ul>
             </div>
           ) : (
@@ -170,42 +168,29 @@ export default function Header() {
       {/* Mobile overlay panel */}
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
-          {/* backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={closeMobile}
-            aria-hidden="true"
-          />
-          {/* sheet */}
+          <div className="absolute inset-0 bg-black/40" onClick={closeMobile} aria-hidden="true" />
           <div className="absolute top-0 right-0 h-full w-72 max-w-[85%] bg-base-100 shadow-xl p-6 flex flex-col gap-4">
+            {/* Top row: avatar, close */}
             <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold">Menu</span>
-              <button
-                className="btn btn-ghost btn-sm"
-                onClick={closeMobile}
-                aria-label="Close menu"
-              >
-                ✕
-              </button>
+              <div className="avatar">
+                <div className="w-10 h-10 rounded-full ring ring-offset-base-100 ring-offset-2 overflow-hidden">
+                  {profile?.avatarUrl ? <img src={profile.avatarUrl} alt="User avatar" /> : <img src={logo} alt="User avatar" />}
+                </div>
+              </div>
+              <button className="btn btn-ghost btn-sm" onClick={closeMobile} aria-label="Close menu">✕</button>
             </div>
 
-            <NavLink to="/problems" onClick={closeMobile} className="link link-hover text-lg">
-              Problems
-            </NavLink>
-            <NavLink to="/contests" onClick={closeMobile} className="link link-hover text-lg">
-              Contests
-            </NavLink>
+            {/* Nav links */}
+            <NavLink to="/problems" onClick={closeMobile} className="link link-hover text-lg">Problems</NavLink>
+            <NavLink to="/contests" onClick={closeMobile} className="link link-hover text-lg">Contests</NavLink>
+            <NavLink to="/author" onClick={closeMobile} className="link link-hover text-lg">Author</NavLink>
 
             <div className="divider my-2" />
 
             {username ? (
               <>
-                <Link to={`/profile/${username}`} onClick={closeMobile} className="link link-hover">
-                  Profile
-                </Link>
-                <button onClick={() => { closeMobile(); handleLogout(); }} className="link link-hover text-left">
-                  Logout
-                </button>
+                <Link to={`/profile/${username}`} onClick={closeMobile} className="link link-hover text-lg">Profile</Link>
+                <button onClick={() => { closeMobile(); handleLogout(); }} className="link link-hover text-left text-lg">Logout</button>
               </>
             ) : (
               <>
@@ -215,7 +200,6 @@ export default function Header() {
             )}
 
             <div className="mt-auto">
-              {/* Keep emoji toggle inside the sheet too */}
               <button className="btn w-full" onClick={toggleTheme}>
                 {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
               </button>

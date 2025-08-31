@@ -26,7 +26,6 @@ export default function ContestListPage() {
 
   return (
     <>
-    <Header />
     <div className="max-w-6xl mx-auto mt-6 px-4 space-y-6">
       <h1 className="text-2xl font-bold mb-4">Contests</h1>
       {contests.length === 0 ? (
@@ -37,7 +36,6 @@ export default function ContestListPage() {
         ))
       )}
     </div>
-    <Footer />
    </>
   );
 }

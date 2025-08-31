@@ -37,7 +37,6 @@ export default function ContestMySubmissionsPage() {
 
   return (
     <>
-      <Header />
       <div className="max-w-6xl mx-auto mt-6 px-4">
         <h1 className="text-2xl font-bold mb-4">My Submissions</h1>
 
@@ -118,7 +117,6 @@ export default function ContestMySubmissionsPage() {
         </div>
       )}
 
-      <Footer />
     </>
   );
 }

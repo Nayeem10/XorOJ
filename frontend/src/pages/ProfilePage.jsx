@@ -49,7 +49,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
       <main className="flex-1 p-4">
         {loading && <div className="max-w-5xl mx-auto">Loading…</div>}
         {error && <div className="max-w-5xl mx-auto text-red-500">Error: {error}</div>}
@@ -90,7 +89,6 @@ export default function ProfilePage() {
           </div>
         )}
       </main>
-      <Footer />
     </div>
   );
 }

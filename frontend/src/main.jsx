@@ -4,6 +4,9 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 
 import './index.css'
 
+// Layout
+import AppLayout from './layouts/AppLayout.jsx'
+
 // Pages
 import HomePage from './pages/HomePage.jsx'
 import ErrorPage from './pages/ErrorPage.jsx'
@@ -11,6 +14,7 @@ import ProfilePage from './pages/ProfilePage.jsx'
 import CreateProblemPage from './pages/CreateProblemPage.jsx'
 import ProblemSet from './pages/ProblemSet.jsx'
 import ProblemPage from './pages/ProblemPage.jsx'
+import AuthorPage from './pages/AuthorPage.jsx'
 
 // Contest Pages
 import ContestListPage from './pages/ContestListPage.jsx'
@@ -23,10 +27,10 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
 
-// ProtectedRoute component
-function Protected({ element }) {
+// Protected layout wrapper
+function ProtectedLayout() {
   const token = localStorage.getItem('xoroj.jwt')
-  return token ? element : <Navigate to="/login" replace />
+  return token ? <AppLayout /> : <Navigate to="/login" replace />
 }
 
 const router = createBrowserRouter([
@@ -34,20 +38,32 @@ const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/register', element: <Register /> },
 
-  // Protected routes
-  { path: '/', element: <Protected element={<HomePage />} />, errorElement: <ErrorPage /> },
-  { path: '/profile/:username', element: <Protected element={<ProfilePage />} /> },
+  // Everything below shares Header/Footer and is protected
+  {
+    path: '/',
+    element: <ProtectedLayout />,
+    errorElement: <ErrorPage />,
+    children: [
+      { index: true, element: <HomePage /> },
 
-  // Problem routes
-  { path: '/problems', element: <Protected element={<ProblemSet />} /> },
-  { path: '/problems/:id', element: <Protected element={<ProblemPage />} /> },
-  { path: '/create-problem', element: <Protected element={<CreateProblemPage />} /> },
+      // Author
+      { path: 'author', element: <AuthorPage /> },
 
-  // Contest routes
-  { path: '/contests', element: <Protected element={<ContestListPage />} /> },
-  { path: '/contests/:id/view', element: <Protected element={<ContestViewPage />} /> },
-  { path: '/contests/:id/my', element: <Protected element={<ContestMySubmissionsPage />} /> },
-  { path: '/contests/:id/submissions/:pageNumber', element: <Protected element={<ContestAllSubmissionsPage />} /> },
+      // Profile
+      { path: 'profile/:username', element: <ProfilePage /> },
+
+      // Problems
+      { path: 'problems', element: <ProblemSet /> },
+      { path: 'problems/:id', element: <ProblemPage /> },
+      { path: 'create-problem', element: <CreateProblemPage /> },
+
+      // Contests
+      { path: 'contests', element: <ContestListPage /> },
+      { path: 'contests/:id/view', element: <ContestViewPage /> },
+      { path: 'contests/:id/my', element: <ContestMySubmissionsPage /> },
+      { path: 'contests/:id/submissions/:pageNumber', element: <ContestAllSubmissionsPage /> },
+    ],
+  },
 ])
 
 createRoot(document.getElementById('root')).render(
