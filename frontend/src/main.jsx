@@ -27,6 +27,18 @@ import ContestMySubmissionsPage from './pages/ContestMySubmissionsPage.jsx'
 import ContestAllSubmissionsPage from './pages/ContestAllSubmissionsPage.jsx'
 import ContestStandingsPage from "./pages/ContestStandingsPage.jsx";
 
+// // Author Problem Editor with Tabs
+import ProblemEditor from "./pages/ProblemEditor.jsx";
+import GeneralInfo from "./pages/problem-editor/GeneralInfo.jsx";
+import Statement from "./pages/problem-editor/Statement.jsx";
+import Validator from "./pages/problem-editor/Validator.jsx";
+import Checker from "./pages/problem-editor/Checker.jsx";
+import Tests from "./pages/problem-editor/Tests.jsx";
+import SolutionFiles from "./pages/problem-editor/SolutionFiles.jsx";
+import Invocations from "./pages/problem-editor/Invocations.jsx";
+import ManageAccess from "./pages/problem-editor/ManageAccess.jsx";
+
+
 // Auth Pages
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
@@ -54,7 +66,38 @@ const router = createBrowserRouter([
       // Author
       { path: 'author', element: <AuthorPage /> },
       { path: 'author/problems', element: <AuthorMyProblems /> },
-      { path: 'author/contests', element: <AuthorMyContests /> }, 
+      { path: 'author/contests', element: <AuthorMyContests /> },
+
+      {
+        path: 'author/problems/create',
+        element: <ProblemEditor />,
+        children: [
+          { path: 'general', element: <GeneralInfo /> },
+          { path: 'statement', element: <Statement /> },
+          { path: 'validator', element: <Validator /> },
+          { path: 'checker', element: <Checker /> },
+          { path: 'tests', element: <Tests /> },
+          { path: 'solutions', element: <SolutionFiles /> },
+          { path: 'invocations', element: <Invocations /> },
+          { path: 'access', element: <ManageAccess /> },
+        ],
+      },
+      {
+        path: 'author/problems/:problemId/edit',
+        element: <ProblemEditor />,
+        children: [
+          { path: 'general', element: <GeneralInfo /> },
+          { path: 'statement', element: <Statement /> },
+          { path: 'validator', element: <Validator /> },
+          { path: 'checker', element: <Checker /> },
+          { path: 'tests', element: <Tests /> },
+          { path: 'solutions', element: <SolutionFiles /> },
+          { path: 'invocations', element: <Invocations /> },
+          { path: 'access', element: <ManageAccess /> },
+        ],
+      },
+
+
 
       // Profile
       { path: 'profile/:username', element: <ProfilePage /> },
