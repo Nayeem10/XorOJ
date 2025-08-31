@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Max;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+
 import java.util.Set;
 
 @Entity
@@ -28,6 +29,11 @@ public class Problem {
 
     @Column(columnDefinition = "integer default 0")
     private int problemNum;
+
+    private Long authorId;
+
+    @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProblemContributor> contributors;
 
     @Min(value = 800)
     @Max(value = 4000)

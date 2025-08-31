@@ -13,4 +13,5 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
     Optional<Problem> findProblemById(Long id);
     List<Problem> findProblemsByTagsContaining(String tags);
     List<Problem> findProblemsByDifficultyRatingBetween(Integer minRating, Integer maxRating);
+    List<Problem> findProblemsByAuthorId(Long authorId);
 }

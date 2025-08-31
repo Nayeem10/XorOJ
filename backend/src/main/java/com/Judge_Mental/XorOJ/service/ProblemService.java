@@ -26,4 +26,14 @@ public class ProblemService {
     public List<Problem> getAllProblems() {
         return problemRepo.findAll();
     }
+    public List<Problem> findProblemsByAuthorId(Long authorId) {
+        return problemRepo.findProblemsByAuthorId(authorId);
+    }
+    public Problem createProblem(Problem problem) {
+        return problemRepo.save(problem);
+    }
+
+    public Problem updateProblem(Problem problem) {
+        return problemRepo.save(problem);
+    }
 }

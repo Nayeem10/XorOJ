@@ -1,11 +1,11 @@
 package com.Judge_Mental.XorOJ.repo;
 
 import java.time.LocalDateTime;
-// import java.util.List;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-// import org.springframework.data.jpa.repository.Query;
-// import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.Judge_Mental.XorOJ.entity.Contest;
@@ -19,17 +19,19 @@ public interface ContestRepository extends JpaRepository<Contest, Long> {
         Contest.ContestStatus getStatus();
     }
 
-    // @Query("""
-    //   select c.startTime as startTime, c.endTime as endTime, c.status as status
-    //   from Contest c where c.id = :id
-    // """)
-    // Times getTimes(@Param("id") Long contestId);
+    @Query("""
+      select c.startTime as startTime, c.endTime as endTime, c.status as status
+      from Contest c where c.id = :id
+    """)
+    Times getTimes(@Param("id") Long contestId);
 
-    // @Query("""
-    //   select p.id
-    //   from Contest c join c.problems p
-    //   where c.id = :id
-    //   order by p.id
-    // """)
-    // List<Long> findProblemIds(@Param("id") Long contestId);
+    @Query("""
+      select p.id
+      from Contest c join c.problems p
+      where c.id = :id
+      order by p.id
+    """)
+    List<Long> findProblemIds(@Param("id") Long contestId);
+
+    List<Contest> findContestsByAuthorId(Long authorId);
 }

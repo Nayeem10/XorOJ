@@ -30,4 +30,8 @@ public class ContestService {
             contestRepo.save(contest);
         }
     }
+
+    public List<Contest> findContestsByAuthorId(Long authorId) {
+        return contestRepo.findContestsByAuthorId(authorId);
+    }
 }

@@ -26,7 +26,7 @@ public class ProblemController {
         return ResponseEntity.ok(problems);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Problem> getProblemById(@PathVariable Long id) {
         Problem problem = problemService.findProblemById(id);
 
@@ -37,4 +37,3 @@ public class ProblemController {
         }
     }
 }
-

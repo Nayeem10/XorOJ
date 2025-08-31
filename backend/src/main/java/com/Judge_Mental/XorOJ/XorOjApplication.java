@@ -60,6 +60,7 @@ public class XorOjApplication {
             problem1.setTitle("Two Sum");
             problem1.setStatement("Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.");
             problem1.setDifficultyRating(1000); // Easy
+            problem1.setAuthorId(user1.getId());
             problem1.setTimeLimit(1000); // 1 second
             problem1.setMemoryLimit(256000); // 256MB
 
@@ -79,11 +80,11 @@ public class XorOjApplication {
             contest.setTitle("Weekly Contest #1");
             contest.setDescription("First weekly programming contest");
             contest.setStartTime(LocalDateTime.now().plusDays(0).plusHours(0).plusSeconds(30));
-            contest.setEndTime(LocalDateTime.now().plusDays(0).plusHours(2));
-            contest.setCreator(admin);
+            contest.setEndTime(LocalDateTime.now().plusDays(0).plusMinutes(3));
+            contest.setAuthorId(admin.getId());
             contest.setProblems(new HashSet<>(Arrays.asList(problem1, problem2)));
             contest.setParticipants(new HashSet<>(Arrays.asList(user1)));
-            contest.setDuration(120); // 2 hours
+            contest.setDuration(3); // 3 minutes
 
             contestRepo.save(contest);
 

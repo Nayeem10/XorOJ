@@ -31,9 +31,7 @@ public class Contest {
 
     private boolean isActive = true;
 
-    @ManyToOne
-    @JoinColumn(name = "creator_id", nullable = false)
-    private XUser creator;
+    private Long authorId;
 
     @ManyToMany
     @JoinTable(
