@@ -86,13 +86,13 @@ export default function ContestViewPage() {
 
         <Card title="All Submissions">
           <Link
-            to={`/contests/${id}/all?page=1`} // Always go to page 1 by default
+            to={`/contests/${id}/submissions/1`} // Always go to page 1 by default
             className="text-indigo-600 hover:underline"
           >
             View All Submissions
           </Link>
         </Card>
-        
+
 
         <Card title="Standings">
           <Link to={`/contests/${id}/standings`} className="text-indigo-600 hover:underline">
