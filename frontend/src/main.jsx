@@ -54,12 +54,13 @@ const router = createBrowserRouter([
 
       // Problems
       { path: 'problems', element: <ProblemSet /> },
-      { path: 'problems/:id', element: <ProblemPage /> },
+      { path: 'problems/:pid', element: <ProblemPage /> },
       { path: 'create-problem', element: <CreateProblemPage /> },
-
+      
       // Contests
       { path: 'contests', element: <ContestListPage /> },
       { path: 'contests/:id/view', element: <ContestViewPage /> },
+      { path: 'contests/:id/problems/:pid', element: <ProblemPage /> },
       { path: 'contests/:id/my', element: <ContestMySubmissionsPage /> },
       { path: 'contests/:id/submissions/:pageNumber', element: <ContestAllSubmissionsPage /> },
     ],

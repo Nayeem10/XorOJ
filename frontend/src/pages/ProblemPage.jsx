@@ -1,14 +1,12 @@
 // src/pages/ProblemPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import Card from "../components/Card";
 import { apiFetch } from "../api/client";
 import CodeEditorPanel from "../components/CodeEditorPanel";
 
 export default function ProblemPage() {
-  const { id } = useParams();
+  const { cid , pid } = useParams();
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,7 +16,7 @@ export default function ProblemPage() {
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
-    apiFetch(`/api/problems/${id}`)
+    apiFetch(`/api/problems/${pid}`)
       .then((data) => {
         setProblem(data);
         setLoading(false);
@@ -28,7 +26,7 @@ export default function ProblemPage() {
         setError(err.message);
         setLoading(false);
       });
-  }, [id]);
+  }, [pid]);
 
   // Will receive { code, language } from CodeEditorPanel
   const handleSubmit = ({ code, language }) => {

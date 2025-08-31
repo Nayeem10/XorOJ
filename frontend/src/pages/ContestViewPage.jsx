@@ -70,7 +70,7 @@ export default function ContestViewPage() {
             <ul className="list-decimal pl-5">
               {contest.problems.map((p) => (
                 <li key={p.id}>
-                  <Link to={`/problems/${p.id}`} className="text-indigo-600">{p.title}</Link>
+                  <Link to={`/contests/${id}/problems/${p.id}`} className="text-indigo-600">{p.title}</Link>
                 </li>
               ))}
             </ul>
