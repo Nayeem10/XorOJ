@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.Judge_Mental.XorOJ.model.Submission;
+import com.Judge_Mental.XorOJ.entity.Submission;
 import com.Judge_Mental.XorOJ.repo.SubmissionRepository;
 
 @Service

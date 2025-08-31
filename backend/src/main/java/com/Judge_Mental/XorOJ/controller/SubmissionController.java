@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.Judge_Mental.XorOJ.dto.SubmissionResponseDTO;
-import com.Judge_Mental.XorOJ.model.Submission;
+import com.Judge_Mental.XorOJ.entity.Submission;
+import com.Judge_Mental.XorOJ.entity.XUser;
 import com.Judge_Mental.XorOJ.service.SubmissionService;
-import com.Judge_Mental.XorOJ.model.XUser;
 
 @RestController
 @RequestMapping("/api/submissions")

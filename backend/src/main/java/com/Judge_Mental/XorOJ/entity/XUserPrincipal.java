@@ -1,4 +1,4 @@
-package com.Judge_Mental.XorOJ.model;
+package com.Judge_Mental.XorOJ.entity;
 
 import java.util.Collection;
 import java.util.List;

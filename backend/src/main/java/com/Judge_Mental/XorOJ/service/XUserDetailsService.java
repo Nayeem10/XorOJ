@@ -1,7 +1,7 @@
 package com.Judge_Mental.XorOJ.service;
 
-import com.Judge_Mental.XorOJ.model.XUser;
-import com.Judge_Mental.XorOJ.model.XUserPrincipal;
+import com.Judge_Mental.XorOJ.entity.XUser;
+import com.Judge_Mental.XorOJ.entity.XUserPrincipal;
 import com.Judge_Mental.XorOJ.repo.XUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

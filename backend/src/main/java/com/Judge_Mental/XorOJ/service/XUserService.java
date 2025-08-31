@@ -6,7 +6,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
-import com.Judge_Mental.XorOJ.model.XUser;
+import com.Judge_Mental.XorOJ.entity.XUser;
 import com.Judge_Mental.XorOJ.repo.XUserRepository;
 
 @Service

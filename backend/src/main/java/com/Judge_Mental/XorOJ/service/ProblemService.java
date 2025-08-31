@@ -3,7 +3,7 @@ package com.Judge_Mental.XorOJ.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.Judge_Mental.XorOJ.model.Problem;
+import com.Judge_Mental.XorOJ.entity.Problem;
 import com.Judge_Mental.XorOJ.repo.ProblemRepository;
 
 import java.util.List;

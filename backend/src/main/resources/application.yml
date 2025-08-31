@@ -12,5 +12,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  thread:
+    virtual:
+      enabled: true
 server:
   port: 8081
+  compression:
+    enabled: true
+    mime-types: application/json,text/event-stream
+    min-response-size: 512
+  http2:
+    enabled: true

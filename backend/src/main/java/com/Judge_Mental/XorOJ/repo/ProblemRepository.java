@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.Judge_Mental.XorOJ.model.Problem;
+import com.Judge_Mental.XorOJ.entity.Problem;
 
 @Repository
 public interface ProblemRepository extends JpaRepository<Problem, Long> {

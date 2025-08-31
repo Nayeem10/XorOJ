@@ -1,4 +1,4 @@
-package com.Judge_Mental.XorOJ.model;
+package com.Judge_Mental.XorOJ.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

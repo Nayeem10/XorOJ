@@ -1,4 +1,4 @@
-package com.Judge_Mental.XorOJ.model;
+package com.Judge_Mental.XorOJ.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -25,7 +25,10 @@ public class Problem {
     
     @Column(columnDefinition = "TEXT")
     private String statement;
-    
+
+    @Column(columnDefinition = "integer default 0")
+    private int problemNum;
+
     @Min(value = 800)
     @Max(value = 4000)
     private Integer difficultyRating;

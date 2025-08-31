@@ -1,6 +1,6 @@
 package com.Judge_Mental.XorOJ;
 
-import com.Judge_Mental.XorOJ.model.*;
+import com.Judge_Mental.XorOJ.entity.*;
 import com.Judge_Mental.XorOJ.repo.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

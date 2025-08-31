@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.Judge_Mental.XorOJ.model.XUser;
+import com.Judge_Mental.XorOJ.entity.XUser;
 import com.Judge_Mental.XorOJ.repo.XUserRepository;
 
 @RestController

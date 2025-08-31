@@ -1,8 +1,9 @@
 package com.Judge_Mental.XorOJ.dto;
 
-import com.Judge_Mental.XorOJ.model.Contest;
 import lombok.Data;
 import java.time.LocalDateTime;
+
+import com.Judge_Mental.XorOJ.entity.Contest;
 
 @Data
 public class ContestResponseDTO {

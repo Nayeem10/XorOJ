@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.Judge_Mental.XorOJ.entity.Contest;
 import com.Judge_Mental.XorOJ.repo.ContestRepository;
-import com.Judge_Mental.XorOJ.model.Contest;
 
 
 @Service
@@ -23,7 +23,7 @@ public class ContestService {
         return contestRepo.findById(id).orElse(null);
     }
 
-    public void registerUserForContest(Long contestId, com.Judge_Mental.XorOJ.model.XUser user) {
+    public void registerUserForContest(Long contestId, com.Judge_Mental.XorOJ.entity.XUser user) {
         Contest contest = findById(contestId);
         if (contest != null) {
             contest.getParticipants().add(user);

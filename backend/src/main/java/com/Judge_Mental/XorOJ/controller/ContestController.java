@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.Judge_Mental.XorOJ.dto.ContestResponseDTO;
-import com.Judge_Mental.XorOJ.model.Contest;
-import com.Judge_Mental.XorOJ.model.XUser;
+import com.Judge_Mental.XorOJ.entity.Contest;
+import com.Judge_Mental.XorOJ.entity.XUser;
 import com.Judge_Mental.XorOJ.service.ContestService;
 
 @RestController

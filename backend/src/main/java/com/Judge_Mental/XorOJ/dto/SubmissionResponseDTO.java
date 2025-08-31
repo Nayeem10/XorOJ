@@ -2,8 +2,8 @@ package com.Judge_Mental.XorOJ.dto;
 
 import java.time.LocalDateTime;
 
-import com.Judge_Mental.XorOJ.model.Submission;
-import com.Judge_Mental.XorOJ.model.Submission.SubmissionStatus;
+import com.Judge_Mental.XorOJ.entity.Submission;
+import com.Judge_Mental.XorOJ.entity.Submission.SubmissionStatus;
 
 import lombok.Data;
 
