@@ -16,12 +16,13 @@ export default function ContestCard({ contest }) {
     if (isRegistered || hasEnded) return;
     try {
       const res = await apiFetch(`/api/contests/${contest.id}/register`, { method: "POST" });
+      console.log(res);
       if (res.success) setIsRegistered(true);
     } catch (err) {
       console.error("Registration failed", err);
     }
   };
-
+  console.log(isRegistered);
   return (
     <div className="border rounded-lg shadow p-4 space-y-3">
       <div className="flex justify-between items-center">
@@ -34,7 +35,6 @@ export default function ContestCard({ contest }) {
         <strong>End:</strong> {endTime.toLocaleString()} <br />
         <CountdownTimer startTime={hasEnded ? endTime : startTime} />
       </div>
-
       <div className="flex gap-2 flex-wrap mt-2">
         {!hasEnded && !isRegistered && (
           <button onClick={handleRegister} className="btn btn-primary btn-sm">

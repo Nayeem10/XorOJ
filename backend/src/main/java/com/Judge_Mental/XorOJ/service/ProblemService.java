@@ -24,7 +24,7 @@ public class ProblemService {
             return null;
         }
         ContestResponseDTO contest = contestRepo.findContestByProblemId(id);
-        if(contest.getStartTime().isBefore(LocalDateTime.now())) {
+        if(!contest.getStartTime().isBefore(LocalDateTime.now())) {
             return null;
         }
         return problem;

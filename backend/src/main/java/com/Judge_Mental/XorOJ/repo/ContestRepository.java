@@ -38,7 +38,7 @@ public interface ContestRepository extends JpaRepository<Contest, Long> {
 
     @Query("""
       select new com.Judge_Mental.XorOJ.dto.ContestResponseDTO(
-        c.id, c.title, c.description, c.startTime, c.endTime, c.status, c.duration
+        c.id, c.title, c.description, c.startTime, c.endTime, c.status, c.duration, false
       )
       from Contest c join c.problems p where p.id = :problemId
     """)

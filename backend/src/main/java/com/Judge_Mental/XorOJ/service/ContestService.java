@@ -23,12 +23,14 @@ public class ContestService {
         return contestRepo.findById(id).orElse(null);
     }
 
-    public void registerUserForContest(Long contestId, com.Judge_Mental.XorOJ.entity.XUser user) {
+    public boolean registerUserForContest(Long contestId, com.Judge_Mental.XorOJ.entity.XUser user) {
         Contest contest = findById(contestId);
         if (contest != null) {
             contest.getParticipants().add(user);
             contestRepo.save(contest);
+            return true;
         }
+        return false;
     }
 
     public List<Contest> findContestsByAuthorId(Long authorId) {

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +30,7 @@ public class ContestController {
 
         List<Contest> contests = contestService.getAllContests();
         return contests.stream()
-            .map(c -> ContestResponseDTO.fromContest(c, user != null ? user.getId() : null))
+            .map(c -> ContestResponseDTO.fromContest(c, user != null ? user.getId() : null, c.getParticipants().contains(user)))
             .collect(Collectors.toList());
     }
 
@@ -37,9 +38,11 @@ public class ContestController {
     public ContestResponseDTO getContestById(
         @PathVariable Long id,
         @AuthenticationPrincipal(expression = "user") XUser user) {
-
+    
         Contest contest = contestService.findById(id);
-        return ContestResponseDTO.fromContest(contest, user != null ? user.getId() : null);
+        boolean registered = contest.getParticipants().contains(user);
+        System.out.println(registered);
+        return ContestResponseDTO.fromContest(contest, user != null ? user.getId() : null, registered);
     }
 
     @GetMapping("/{id}/details")
@@ -52,11 +55,13 @@ public class ContestController {
     }
 
     @PostMapping("/{id}/register")
-    public void registerForContest(
+    public ResponseEntity<Boolean> registerForContest(
         @PathVariable Long id,
         @AuthenticationPrincipal(expression = "user") XUser user) {
 
         if (user == null) throw new IllegalStateException("User must be authenticated to register for a contest");
-        contestService.registerUserForContest(id, user);
+        boolean success = contestService.registerUserForContest(id, user);
+        return ResponseEntity.ok(success);
+
     }
 }

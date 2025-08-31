@@ -20,8 +20,9 @@ public class ContestResponseDTO {
     private LocalDateTime endTime;
     private ContestStatus status;
     private int duration;
+    private boolean registered;
 
-    public static ContestResponseDTO fromContest(Contest contest, Long userId) {
+    public static ContestResponseDTO fromContest(Contest contest, Long userId, boolean registered) {
         ContestResponseDTO dto = new ContestResponseDTO();
         dto.setId(contest.getId());
         dto.setTitle(contest.getTitle());
@@ -30,6 +31,7 @@ public class ContestResponseDTO {
         dto.setEndTime(contest.getEndTime());
         dto.setStatus(contest.getStatus());
         dto.setDuration(contest.getDuration());
+        dto.setRegistered(registered);
         return dto;
     }
 }
