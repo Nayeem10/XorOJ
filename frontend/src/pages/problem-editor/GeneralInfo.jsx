@@ -10,7 +10,6 @@ function TagsInput({ problemData, setProblemData, availableTags }) {
 
   const tags = problemData.tags || [];
 
-  // Filter available options to show only unchosen tags
   const options = availableTags.filter(
     (t) => !tags.includes(t) && t.toLowerCase().includes(newTag.toLowerCase())
   );
@@ -27,7 +26,6 @@ function TagsInput({ problemData, setProblemData, availableTags }) {
 
   return (
     <div className="relative">
-      {/* Chosen tags */}
       <div className="flex flex-wrap gap-2 mb-1">
         {tags.map((tag) => (
           <span
@@ -46,7 +44,6 @@ function TagsInput({ problemData, setProblemData, availableTags }) {
         ))}
       </div>
 
-      {/* Input for adding new tags */}
       <input
         type="text"
         className="w-full border rounded px-2 py-1"
@@ -57,10 +54,9 @@ function TagsInput({ problemData, setProblemData, availableTags }) {
           setShowDropdown(true);
         }}
         onFocus={() => setShowDropdown(true)}
-        onBlur={() => setTimeout(() => setShowDropdown(false), 150)} // allow click
+        onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
       />
 
-      {/* Dropdown of options */}
       {showDropdown && options.length > 0 && (
         <ul className="absolute z-10 bg-white border rounded w-full mt-1 max-h-40 overflow-y-auto shadow-md">
           {options.map((opt) => (
@@ -79,20 +75,23 @@ function TagsInput({ problemData, setProblemData, availableTags }) {
 }
 
 export default function GeneralInfo() {
-  // Get shared problem data from ProblemEditor
   const { problemData, setProblemData } = useOutletContext();
 
-  // Dummy available tags for dropdown
   const availableTags = ["DP", "Graph", "Math", "Greedy", "String", "Implementation"];
 
   const handleSave = async () => {
     try {
+      // Only send the selected fields
       const payload = {
-        ...problemData,
-        memoryLimit: problemData.memoryLimit * 1024, // convert to KB
+        inputFile: problemData.inputFile || "",
+        outputFile: problemData.outputFile || "",
+        timeLimit: problemData.timeLimit || 1000,
+        memoryLimit: problemData.memoryLimit || 256,
+        contestId: problemData.contestId || "",
+        tags: problemData.tags || [],
       };
 
-      await apiFetch(`/api/problems/${problemData.id}`, {
+      await apiFetch(`/api/problems/${problemData.id}/generalinfo`, {
         method: "POST",
         body: JSON.stringify(payload),
       });
