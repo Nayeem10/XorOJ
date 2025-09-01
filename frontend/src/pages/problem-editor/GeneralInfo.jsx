@@ -91,15 +91,19 @@ export default function GeneralInfo() {
         tags: problemData.tags || [],
       };
 
-      await apiFetch(`/api/problems/${problemData.id}/generalinfo`, {
+      const res = await apiFetch(`/api/problems/${problemData.id}/generalinfo`, {
         method: "POST",
         body: JSON.stringify(payload),
       });
 
+      if (!res.ok) throw new Error("Failed to save general info");      
+
+      setProblemData({ ...problemData, ...payload });
+
       alert("Saved successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to save problem");
+      alert("Failed to save general info");
     }
   };
 

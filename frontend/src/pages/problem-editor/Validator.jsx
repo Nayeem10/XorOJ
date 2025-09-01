@@ -38,15 +38,24 @@ export default function Validator() {
       alert(`Test with ID "${newTest.id}" already exists`);
       return;
     }
-    setTests([...tests, { ...newTest, validatorVerdict: null, validatorComment: null }]);
+
+    const updatedTests = [...tests, { ...newTest, validatorVerdict: null, validatorComment: null }];
+    setTests(updatedTests);
     setShowModal(false);
     setNewTest({ id: "", input: "", verdict: "VALID" });
+
+    // Update outlet context immediately
+    setProblemData((prev) => ({ ...prev, tests: updatedTests }));
   };
 
   // Delete a test
   const handleDeleteTest = (id) => {
     if (window.confirm(`Delete test #${id}?`)) {
-      setTests(tests.filter((t) => t.id !== id));
+      const updatedTests = tests.filter((t) => t.id !== id);
+      setTests(updatedTests);
+
+      // Update outlet context
+      setProblemData((prev) => ({ ...prev, tests: updatedTests }));
     }
   };
 
@@ -77,6 +86,7 @@ export default function Validator() {
     }
 
     setTests(updatedTests);
+    setProblemData((prev) => ({ ...prev, tests: updatedTests }));
     setLoading(false);
   };
 
@@ -89,6 +99,10 @@ export default function Validator() {
 
       const res = await apiFetch(`/api/problems/${problemId}/validate`, { method: "POST", body: formData });
       if (!res.ok) throw new Error("Failed to save validator data");
+
+      // Update outlet context with saved data
+      setProblemData((prev) => ({ ...prev, validatorFile, tests }));
+
       alert("Validator data saved successfully!");
     } catch (err) {
       console.error(err);
@@ -151,11 +165,25 @@ export default function Validator() {
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h3 className="text-lg font-bold mb-4">Add Test</h3>
             <label className="block mb-2">Test ID</label>
-            <input type="text" className="w-full border rounded px-2 py-1 mb-3" value={newTest.id} onChange={e => setNewTest({ ...newTest, id: e.target.value })}/>
+            <input
+              type="text"
+              className="w-full border rounded px-2 py-1 mb-3"
+              value={newTest.id}
+              onChange={e => setNewTest({ ...newTest, id: e.target.value })}
+            />
             <label className="block mb-2">Input</label>
-            <textarea className="w-full border rounded p-2 mb-3" rows="5" value={newTest.input} onChange={e => setNewTest({ ...newTest, input: e.target.value })}/>
+            <textarea
+              className="w-full border rounded p-2 mb-3"
+              rows="5"
+              value={newTest.input}
+              onChange={e => setNewTest({ ...newTest, input: e.target.value })}
+            />
             <label className="block mb-2">Expected Verdict</label>
-            <select className="w-full border rounded p-2 mb-3" value={newTest.verdict} onChange={e => setNewTest({ ...newTest, verdict: e.target.value })}>
+            <select
+              className="w-full border rounded p-2 mb-3"
+              value={newTest.verdict}
+              onChange={e => setNewTest({ ...newTest, verdict: e.target.value })}
+            >
               <option value="VALID">VALID</option>
               <option value="INVALID">INVALID</option>
             </select>

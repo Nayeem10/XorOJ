@@ -36,8 +36,8 @@ export default function Statement() {
 
       if (!res.ok) throw new Error("Failed to save statement");
 
-      // Update shared problem data
-      setProblemData({ ...problemData, ...payload });
+      // Update shared problemData in context
+      setProblemData(prev => ({ ...prev, ...payload }));
 
       alert("Statement saved successfully!");
     } catch (err) {
@@ -45,6 +45,7 @@ export default function Statement() {
       alert("Failed to save statement");
     }
   };
+
 
   // Combine all content for live preview
   const previewContent = `
