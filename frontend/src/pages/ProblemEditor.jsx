@@ -30,7 +30,7 @@ export default function ProblemEditor() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">
-        {problemId ? `Edit Problem ${problemData.title}` : "Create New Problem"}
+        {`Problem Title: ${problemData.title}`}
       </h1>
 
       {/* Navigation Tabs */}
