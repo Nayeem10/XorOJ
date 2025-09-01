@@ -6,6 +6,7 @@ const tabs = [
   { name: "General Info", path: "general" },
   { name: "Statement", path: "statement" },
   { name: "Validator", path: "validator" },
+  { name: "Generator", path: "generator" },
   { name: "Checker", path: "checker" },
   { name: "Tests", path: "tests" },
   { name: "Solution Files", path: "solutions" },

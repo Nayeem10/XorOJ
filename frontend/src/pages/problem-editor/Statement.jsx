@@ -37,7 +37,7 @@ export default function Statement() {
       if (!res.ok) throw new Error("Failed to save statement");
 
       // Update shared problemData in context
-      setProblemData(prev => ({ ...prev, ...payload }));
+      setProblemData({ ...problemData, ...payload})
 
       alert("Statement saved successfully!");
     } catch (err) {

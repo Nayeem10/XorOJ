@@ -33,6 +33,7 @@ import GeneralInfo from "./pages/problem-editor/GeneralInfo.jsx";
 import Statement from "./pages/problem-editor/Statement.jsx";
 import Validator from "./pages/problem-editor/Validator.jsx";
 import Checker from "./pages/problem-editor/Checker.jsx";
+import Generator from "./pages/problem-editor/Generator.jsx";
 import Tests from "./pages/problem-editor/Tests.jsx";
 import SolutionFiles from "./pages/problem-editor/SolutionFiles.jsx";
 import Invocations from "./pages/problem-editor/Invocations.jsx";
@@ -75,6 +76,7 @@ const router = createBrowserRouter([
           { path: 'general', element: <GeneralInfo /> },
           { path: 'statement', element: <Statement /> },
           { path: 'validator', element: <Validator /> },
+          { path: 'generator', element: <Generator /> },
           { path: 'checker', element: <Checker /> },
           { path: 'tests', element: <Tests /> },
           { path: 'solutions', element: <SolutionFiles /> },
@@ -89,6 +91,7 @@ const router = createBrowserRouter([
           { path: 'general', element: <GeneralInfo /> },
           { path: 'statement', element: <Statement /> },
           { path: 'validator', element: <Validator /> },
+          { path: 'generator', element: <Generator /> },
           { path: 'checker', element: <Checker /> },
           { path: 'tests', element: <Tests /> },
           { path: 'solutions', element: <SolutionFiles /> },

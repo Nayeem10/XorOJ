@@ -45,7 +45,7 @@ export default function Validator() {
     setNewTest({ id: "", input: "", verdict: "VALID" });
 
     // Update outlet context immediately
-    setProblemData((prev) => ({ ...prev, tests: updatedTests }));
+    setProblemData({ ...problemData, tests: updatedTests});
   };
 
   // Delete a test
@@ -55,7 +55,8 @@ export default function Validator() {
       setTests(updatedTests);
 
       // Update outlet context
-      setProblemData((prev) => ({ ...prev, tests: updatedTests }));
+      setProblemData({ ...problemData, tests: updatedTests});
+      
     }
   };
 
@@ -86,7 +87,7 @@ export default function Validator() {
     }
 
     setTests(updatedTests);
-    setProblemData((prev) => ({ ...prev, tests: updatedTests }));
+    setProblemData({ ...problemData, tests: updatedTests});
     setLoading(false);
   };
 
