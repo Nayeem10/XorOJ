@@ -68,6 +68,9 @@ public class SubmissionController {
     @PostMapping("/test")
     public RunResult submitSolution(
         @RequestBody runRequest request) throws IOException, InterruptedException {
+            System.out.println(request.code());
+            System.out.println(request.input());
+
         return judgingService.runCodeWithTest(request.code(), request.input());
     }
 

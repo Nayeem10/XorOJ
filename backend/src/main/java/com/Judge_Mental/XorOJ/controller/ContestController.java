@@ -62,6 +62,5 @@ public class ContestController {
         if (user == null) throw new IllegalStateException("User must be authenticated to register for a contest");
         boolean success = contestService.registerUserForContest(id, user);
         return ResponseEntity.ok(success);
-
     }
 }

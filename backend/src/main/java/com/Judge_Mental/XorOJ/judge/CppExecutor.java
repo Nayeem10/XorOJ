@@ -29,13 +29,6 @@ public class CppExecutor {
             this.timeUsedMillis = timeUsedMillis;
             this.memoryUsedKB = memoryUsedKB;
         }
-        @Override public String toString() {
-            return "exitCode=" + exitCode +
-                   "\ntimeUsedMillis=" + timeUsedMillis +
-                   "\nmemoryUsedKB=" + memoryUsedKB +
-                   "\n--- stdout ---\n" + stdout +
-                   "\n--- stderr ---\n" + stderr;
-        }
     }
 
     /**
