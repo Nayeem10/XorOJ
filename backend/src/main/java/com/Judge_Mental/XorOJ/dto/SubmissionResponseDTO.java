@@ -3,6 +3,7 @@ package com.Judge_Mental.XorOJ.dto;
 import java.time.LocalDateTime;
 
 import com.Judge_Mental.XorOJ.entity.Submission;
+import com.Judge_Mental.XorOJ.entity.Submission.ProgrammingLanguage;
 import com.Judge_Mental.XorOJ.entity.Submission.SubmissionStatus;
 
 import lombok.Data;
@@ -13,7 +14,7 @@ public class SubmissionResponseDTO {
     private Long userId;
     private Long problemId;
     private String code;
-    private String language;
+    private ProgrammingLanguage language;
     private LocalDateTime submissionTime;
     private SubmissionStatus status;
     private Integer executionTime;
@@ -24,8 +25,8 @@ public class SubmissionResponseDTO {
     public static SubmissionResponseDTO fromSubmission(Submission submission) {
         SubmissionResponseDTO dto = new SubmissionResponseDTO();
         dto.setId(submission.getId());
-        dto.setUserId(submission.getUser().getId());
-        dto.setProblemId(submission.getProblem().getId());
+        dto.setUserId(submission.getUserId());
+        dto.setProblemId(submission.getProblemId());
         dto.setCode(submission.getCode());
         dto.setLanguage(submission.getLanguage());
         dto.setSubmissionTime(submission.getSubmissionTime());

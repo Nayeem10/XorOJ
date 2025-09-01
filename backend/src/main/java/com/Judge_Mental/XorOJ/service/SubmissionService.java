@@ -14,7 +14,7 @@ public class SubmissionService {
     @Autowired
     private SubmissionRepository submissionRepository;
 
-    public Submission createSubmission(Submission submission) {
+    public Submission submit(Submission submission) {
         return submissionRepository.save(submission);
     }
 

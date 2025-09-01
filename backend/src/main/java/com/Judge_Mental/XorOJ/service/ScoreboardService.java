@@ -7,7 +7,6 @@ import com.Judge_Mental.XorOJ.repo.StandingsSnapshotRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -115,7 +114,7 @@ public class ScoreboardService {
         return s;
     }
 
-    private long toEpochMs(LocalDateTime ldt) {
+    private static long toEpochMs(LocalDateTime ldt) {
         return ldt == null ? 0L : ldt.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
 
@@ -170,12 +169,13 @@ public class ScoreboardService {
             rowsByUser.put(row.userId(), row);
         }
 
-        long now() { return Instant.now().toEpochMilli(); }
+        long now() { return toEpochMs(LocalDateTime.now()); }
 
         StandingsDTO toDTO() {
             var rows = new ArrayList<>(rowsByUser.values());
             rows.sort(ICPC);
             long now = now();
+
             return new StandingsDTO(
                 contestId,
                 version.get(),

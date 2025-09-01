@@ -30,25 +30,16 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
         LocalDateTime getSubmissionTime();
     }
 
-    // JPQL version (matches your entity’s property names)
     @Query("""
-        select s.user.id          as userId,
-               s.problem.id       as problemId,
+        select s.userId          as userId,
+               s.problemId       as problemId,
                s.status           as status,
                s.submissionTime   as submissionTime
         from Submission s
-        where s.contest.id = :contestId
+        where s.contestId = :contestId
         order by s.submissionTime asc, s.id asc
     """)
     @QueryHints(@QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "500"))
     Stream<SubmView> streamByContest(@Param("contestId") Long contestId);
 
-    // If you prefer not to deal with Stream/transactions, use List instead:
-    // @Query("""
-    //     select s.user.id, s.problem.id, s.status, s.submissionTime
-    //     from Submission s
-    //     where s.contest.id = :contestId
-    //     order by s.submissionTime asc, s.id asc
-    // """)
-    // List<SubmView> findFlatByContest(@Param("contestId") Long contestId);
 }

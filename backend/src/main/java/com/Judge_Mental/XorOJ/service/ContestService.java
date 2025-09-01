@@ -1,5 +1,6 @@
 package com.Judge_Mental.XorOJ.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,17 @@ public class ContestService {
     }
 
     public Contest findById(Long id) {
-        return contestRepo.findById(id).orElse(null);
+        Contest contest = contestRepo.findById(id).orElse(null);
+        if (contest != null) {
+            if(contest.getStartTime().isBefore(LocalDateTime.now())) {
+                if(contest.getEndTime().isBefore(LocalDateTime.now()))
+                    contest.setStatus(Contest.ContestStatus.ENDED);
+                else
+                    contest.setStatus(Contest.ContestStatus.RUNNING);
+            }
+
+        }
+        return contest;
     }
 
     public boolean registerUserForContest(Long contestId, com.Judge_Mental.XorOJ.entity.XUser user) {

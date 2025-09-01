@@ -16,23 +16,18 @@ public class Submission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private XUser user;
+    Long userId; // ID of the user who made the submission
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contest_id")
-    private Contest contest; // null if not part of a contest
+    Long contestId; // ID of the contest (if any)
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "problem_id", nullable = false)
-    private Problem problem;
+    Long problemId; // ID of the problem being submitted
 
+    @Lob
     @Column(nullable = false, length = 50000)
     private String code;
 
     @Column(nullable = false)
-    private String language; // e.g., "cpp", "java", "python"
+    private ProgrammingLanguage language; // e.g., "cpp", "java", "python"
 
     @Column(nullable = false)
     private LocalDateTime submissionTime;
@@ -50,7 +45,7 @@ public class Submission {
     @Column(length = 1000)
     private String errorMessage;
 
-    @Column(nullable = false)
+    @Column
     private Integer score; // 0-100
 
     // Define submission status enum
@@ -63,6 +58,11 @@ public class Submission {
         MEMORY_LIMIT_EXCEEDED,
         COMPILATION_ERROR,
         RUNTIME_ERROR
+    }
+    public enum ProgrammingLanguage {
+        CPP,
+        JAVA,
+        PYTHON
     }
 
 }

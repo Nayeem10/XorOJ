@@ -90,11 +90,11 @@ public class XorOjApplication {
 
             // Create submissions
             Submission submission1 = new Submission();
-            submission1.setUser(user1);
-            submission1.setProblem(problem1);
-            submission1.setContest(contest);
+            submission1.setUserId(user1.getId());
+            submission1.setProblemId(problem1.getId());
+            submission1.setContestId(contest.getId());
             submission1.setCode("public class Solution { public int[] twoSum(int[] nums, int target) { return null; } }");
-            submission1.setLanguage("java");
+            submission1.setLanguage(Submission.ProgrammingLanguage.JAVA);
             submission1.setSubmissionTime(LocalDateTime.now());
             submission1.setStatus(Submission.SubmissionStatus.WRONG_ANSWER);
             submission1.setExecutionTime(100);
@@ -102,10 +102,10 @@ public class XorOjApplication {
             submission1.setScore(0);
 
             Submission submission2 = new Submission();
-            submission2.setUser(user1);
-            submission2.setProblem(problem1);
+            submission2.setUserId(user1.getId());
+            submission2.setProblemId(problem1.getId());
             submission2.setCode("class Solution { public: vector<int> twoSum(vector<int>& nums, int target) { return {}; } };");
-            submission2.setLanguage("cpp");
+            submission2.setLanguage(Submission.ProgrammingLanguage.CPP);
             submission2.setSubmissionTime(LocalDateTime.now());
             submission2.setStatus(Submission.SubmissionStatus.COMPILATION_ERROR);
             submission2.setErrorMessage("missing include statements");
