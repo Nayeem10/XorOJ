@@ -6,12 +6,15 @@ import { useOutletContext } from "react-router-dom";
 export default function Tests() {
   const { problemData, setProblemData } = useOutletContext();
   const [tests, setTests] = useState(problemData?.tests || []);
+
   const [showManualForm, setShowManualForm] = useState(false);
   const [showGeneratedForm, setShowGeneratedForm] = useState(false);
 
+  const [manualId, setManualId] = useState("");
   const [manualInput, setManualInput] = useState("");
   const [manualOutput, setManualOutput] = useState("");
 
+  const [generatedId, setGeneratedId] = useState("");
   const [selectedGenerator, setSelectedGenerator] = useState("");
   const [command, setCommand] = useState("");
 
@@ -21,7 +24,13 @@ export default function Tests() {
     if (problemData?.tests) setTests(problemData.tests);
   }, [problemData]);
 
+  // Save or update a test
   const saveTest = async (newTest) => {
+    if (!newTest.id.trim()) {
+      alert("Test ID cannot be empty");
+      return;
+    }
+
     try {
       const res = await apiFetch(`/api/problems/${problemId}/tests`, {
         method: "POST",
@@ -32,12 +41,19 @@ export default function Tests() {
       if (!res.ok) throw new Error("Failed to save test");
 
       const savedTest = await res.json();
-      setTests([...tests, savedTest]);
-      setProblemData((prev) => ({ ...prev, tests: [...tests, savedTest] }));
 
-      // reset
+      // Update tests array: replace if ID exists, otherwise append
+      const updatedTests = tests.filter((t) => t.id !== savedTest.id);
+      updatedTests.push(savedTest);
+
+      setTests(updatedTests);
+      setProblemData((prev) => ({ ...prev, tests: updatedTests }));
+
+      // reset form fields
+      setManualId("");
       setManualInput("");
       setManualOutput("");
+      setGeneratedId("");
       setSelectedGenerator("");
       setCommand("");
       setShowManualForm(false);
@@ -53,11 +69,12 @@ export default function Tests() {
       const res = await apiFetch(`/api/problems/${problemId}/tests/${id}`, {
         method: "DELETE",
       });
+
       if (!res.ok) throw new Error("Failed to delete test");
 
-      const updated = tests.filter((t) => t.id !== id);
-      setTests(updated);
-      setProblemData((prev) => ({ ...prev, tests: updated }));
+      const updatedTests = tests.filter((t) => t.id !== id);
+      setTests(updatedTests);
+      setProblemData((prev) => ({ ...prev, tests: updatedTests }));
     } catch (err) {
       console.error(err);
       alert("Failed to delete test");
@@ -93,6 +110,12 @@ export default function Tests() {
       {showManualForm && (
         <div className="p-4 mb-6 border rounded-md bg-gray-50">
           <h2 className="font-semibold mb-3">New Manual Test</h2>
+          <input
+            placeholder="Test ID"
+            value={manualId}
+            onChange={(e) => setManualId(e.target.value)}
+            className="w-full mb-3 p-2 border rounded"
+          />
           <textarea
             placeholder="Input"
             value={manualInput}
@@ -109,7 +132,12 @@ export default function Tests() {
           />
           <Button
             onClick={() =>
-              saveTest({ type: "manual", input: manualInput, output: manualOutput })
+              saveTest({
+                id: manualId,
+                type: "manual",
+                input: manualInput,
+                output: manualOutput,
+              })
             }
             className="bg-indigo-600 hover:bg-indigo-700"
           >
@@ -122,6 +150,12 @@ export default function Tests() {
       {showGeneratedForm && (
         <div className="p-4 mb-6 border rounded-md bg-gray-50">
           <h2 className="font-semibold mb-3">New Generated Test</h2>
+          <input
+            placeholder="Test ID"
+            value={generatedId}
+            onChange={(e) => setGeneratedId(e.target.value)}
+            className="w-full mb-3 p-2 border rounded"
+          />
           <select
             value={selectedGenerator}
             onChange={(e) => setSelectedGenerator(e.target.value)}
@@ -143,7 +177,12 @@ export default function Tests() {
           />
           <Button
             onClick={() =>
-              saveTest({ type: "generated", generator: selectedGenerator, command })
+              saveTest({
+                id: generatedId,
+                type: "generated",
+                generator: selectedGenerator,
+                command,
+              })
             }
             className="bg-indigo-600 hover:bg-indigo-700"
           >
@@ -157,6 +196,7 @@ export default function Tests() {
       <table className="w-full border text-left">
         <thead>
           <tr className="bg-gray-200">
+            <th className="p-2 border">ID</th>
             <th className="p-2 border">Type</th>
             <th className="p-2 border">Content</th>
             <th className="p-2 border">Action</th>
@@ -165,13 +205,14 @@ export default function Tests() {
         <tbody>
           {tests.length === 0 ? (
             <tr>
-              <td colSpan="3" className="p-4 text-center text-gray-500">
+              <td colSpan="4" className="p-4 text-center text-gray-500">
                 No tests yet
               </td>
             </tr>
           ) : (
             tests.map((t) => (
               <tr key={t.id}>
+                <td className="p-2 border">{t.id}</td>
                 <td className="p-2 border">{t.type}</td>
                 <td className="p-2 border">
                   {t.type === "manual" ? (
