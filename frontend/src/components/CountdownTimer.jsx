@@ -1,5 +1,4 @@
-// src/components/CountdownTimer.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function CountdownTimer({ startTime, onExpire }) {
   const [timeLeft, setTimeLeft] = useState(Math.max(new Date(startTime) - new Date(), 0));

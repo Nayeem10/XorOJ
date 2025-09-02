@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+
+import { apiFetch } from "../api/client";
+
 import Card from "../components/Card.jsx";
 import CountdownTimer from "../components/CountdownTimer.jsx";
-import { apiFetch } from "../api/client";
-import Header from "../components/Header.jsx";
-import Footer from "../components/Footer.jsx";
 
 export default function ContestViewPage() {
   const { id } = useParams();

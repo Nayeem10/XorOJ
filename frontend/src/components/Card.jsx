@@ -1,11 +1,29 @@
-// src/components/Card.jsx
-import React from "react";
+import "../styles/styles.css";
+
+const cardStyles = {
+  card: {
+    backgroundColor: 'var(--colour-1)', 
+    border: '1px solid var(--colour-5)',
+    borderRadius: '0.5rem',
+    padding: '1.25rem',
+    boxShadow: '0 1px 2px var(--colour-6)'
+  },
+  title: {
+    
+  },
+  content: {
+    
+  }
+};
 
 export default function Card({ title, children, className = "" }) {
   return (
-    <div className={`bg-white shadow-md rounded-lg p-4 ${className}`}>
-      {title && <h2 className="text-lg font-semibold text-gray-800 mb-3">{title}</h2>}
-      <div>{children}</div>
+    <div
+      className={className}
+      style={cardStyles.card}
+    >
+      {title && <h2 style={cardStyles.title}>{title}</h2>}
+      <div style={cardStyles.content}>{children}</div>
     </div>
   );
 }

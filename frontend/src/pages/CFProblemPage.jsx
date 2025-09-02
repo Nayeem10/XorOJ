@@ -1,8 +1,5 @@
-// src/pages/CFProblemPage.jsx
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import { useParams } from "react-router-dom";
 
 function parseCfId(id) {
   // Supports "1234A", "1234a", "1234/A", "1234/A1" (edu sometimes)

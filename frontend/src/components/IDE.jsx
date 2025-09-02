@@ -1,5 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { apiFetch } from "../api/client";
+
 import CodeEditor from "./CodeEditor";
 
 // You can pass initialCode/stdin from parent if you want.
@@ -150,8 +152,8 @@ print(sum(nums))
             onClick={runCode}
             disabled={!canRun}
             className={`px-3 py-1 rounded ${canRun
-                ? "bg-black text-white"
-                : "bg-gray-300 text-gray-600 cursor-not-allowed"
+              ? "bg-black text-white"
+              : "bg-gray-300 text-gray-600 cursor-not-allowed"
               }`}
             title="Run (Ctrl/Cmd + Enter)"
           >
@@ -160,72 +162,72 @@ print(sum(nums))
         </div>
       </header>
 
-      {/* Code editor (Monaco) */}
-      <section className="space-y-2 flex-1 min-h-40 flex flex-col">
-        <label className="text-sm font-medium">Code Editor</label>
-        <div className="flex-1 min-h-0">
-          <CodeEditor
-            language={language}
-            value={code}
-            onChange={setCode}
-            height="100%"
-          />
-        </div>
-      </section>
+      <section className="grid grid-rows-5 h-full">
+        {/* Code editor (Monaco) */}
 
-      {/* Text box for stdin */}
-      <section className="space-y-2">
-        <label className="text-sm font-medium">Program Input (STDIN)</label>
-        <textarea
-          value={stdinText}
-          onChange={(e) => setStdinText(e.target.value)}
-          className="w-full min-h-20 font-mono text-sm border rounded p-3 resize-y"
-          placeholder="Provide input for your program…"
-        />
-      </section>
-
-
-      {/* Results */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Output</h2>
-            <Metrics result={result} />
+        <section className="space-y-2 row-span-3 min-h-40 flex flex-col">
+          <label className="text-sm font-medium">Code Editor</label>
+          <div className="flex-1 min-h-0">
+            <CodeEditor
+              language={language}
+              value={code}
+              onChange={setCode}
+              height="100%"
+            />
           </div>
-          <pre className="w-full h-20 border rounded p-3 overflow-auto whitespace-pre-wrap">
-            {result
-              ? (result.stdout?.length > 0
-                ? String(result.stdout)
-                : <span className="text-gray-400">No output</span>)
-              : <span className="text-gray-400">—</span>}
-          </pre>
-        </div>
+        </section>
 
-        <div className="space-y-2">
-          <h2 className="font-semibold flex items-center gap-2">Errors
-            {result?.exitCode !== undefined && (
-              <span className="text-xs text-gray-500">(exit code: {result.exitCode})</span>
-            )}
-          </h2>
-          <pre className={`w-full h-20 border rounded p-3 overflow-auto whitespace-pre-wrap ${result?.stderr?.length > 0 ? 'bg-red-50 border-red-300 text-red-700' : ''}`}>
-            {result
-              ? (result.stderr?.length > 0
-                ? String(result.stderr)
-                : <span className="text-gray-400">No errors</span>)
-              : <span className="text-gray-400">—</span>}
-          </pre>
-        </div>
+        {/* Text box for stdin */}
+        <section className="space-y-2">
+          <label className="text-sm font-medium">Program Input (STDIN)</label>
+          <textarea
+            value={stdinText}
+            onChange={(e) => setStdinText(e.target.value)}
+            className="w-full min-h-20 font-mono text-sm border rounded p-3 resize-y"
+            placeholder="Provide input for your program…"
+          />
+        </section>
+
+
+        {/* Results */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold">Output</h2>
+              <Metrics result={result} />
+            </div>
+            <pre className="w-full h-20 border rounded p-3 overflow-auto whitespace-pre-wrap">
+              {result
+                ? (result.stdout?.length > 0
+                  ? String(result.stdout)
+                  : <span className="text-gray-400">No output</span>)
+                : <span className="text-gray-400">—</span>}
+            </pre>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="font-semibold flex items-center gap-2">Errors
+              {result?.exitCode !== undefined && (
+                <span className="text-xs text-gray-500">(exit code: {result.exitCode})</span>
+              )}
+            </h2>
+            <pre className={`w-full h-20 border rounded p-3 overflow-auto whitespace-pre-wrap ${result?.stderr?.length > 0 ? 'bg-red-50 border-red-300 text-red-700' : ''}`}>
+              {result
+                ? (result.stderr?.length > 0
+                  ? String(result.stderr)
+                  : <span className="text-gray-400">No errors</span>)
+                : <span className="text-gray-400">—</span>}
+            </pre>
+          </div>
+        </section>
       </section>
+
 
       {error && (
         <div className="border border-red-300 bg-red-50 text-red-700 rounded p-3">
           {error}
         </div>
       )}
-
-      <footer className="text-xs text-gray-500 mt-2">
-        Tip: Press <kbd className="px-1 border rounded">Ctrl/⌘ + Enter</kbd> to run.
-      </footer>
     </div>
   );
 }

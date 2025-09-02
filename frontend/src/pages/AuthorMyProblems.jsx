@@ -1,7 +1,7 @@
-// src/pages/MyProblems.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiFetch } from "../api/client";
 import { useNavigate } from "react-router-dom";
+
 import Card from "../components/Card.jsx";
 import Button from "../components/Button.jsx";
 

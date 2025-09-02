@@ -1,5 +1,5 @@
-// src/pages/ContestListPage.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+
 import { apiFetch } from "../api/client";
 
 import ContestCard from "../components/ContestCard.jsx";

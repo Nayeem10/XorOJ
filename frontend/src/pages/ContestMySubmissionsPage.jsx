@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import Card from "../components/Card.jsx";
+
 import { apiFetch } from "../api/client";
-import Header from "../components/Header.jsx";
-import Footer from "../components/Footer.jsx";
+
+import Card from "../components/Card.jsx";
 
 export default function ContestMySubmissionsPage() {
   const { id } = useParams(); // contest id

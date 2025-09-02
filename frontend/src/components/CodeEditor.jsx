@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useCallback, useState } from "react";
-import Editor, { useMonaco } from "@monaco-editor/react";
+import { useEffect, useRef, useCallback, useState } from "react";
+import Editor from "@monaco-editor/react";
 
 export default function CodeEditor({
   language = "cpp",      // "cpp" | "java" | "python"

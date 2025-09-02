@@ -1,5 +1,4 @@
-import React from 'react';
-import "../styles.css";  // Import global styles (including theme colors)
+import "../styles/styles.css";
 
 const Footer = () => {
   return (

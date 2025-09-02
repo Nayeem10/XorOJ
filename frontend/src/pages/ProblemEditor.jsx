@@ -1,5 +1,4 @@
-// src/pages/ProblemEditor.jsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { NavLink, Outlet, useParams, useLocation } from "react-router-dom";
 
 const tabs = [

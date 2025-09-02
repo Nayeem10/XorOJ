@@ -1,5 +1,3 @@
-// src/components/Button.jsx
-import React from "react";
 
 export default function Button({ children, className = "", loading = false, ...props }) {
   return (

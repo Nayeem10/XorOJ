@@ -1,8 +1,9 @@
-// src/components/Header.jsx
 import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+
 import logo from "../assets/xorpic.png";
-import "../styles.css";
+
+import "../styles/styles.css";
 
 const TOKEN_KEY = "xoroj.jwt";
 
