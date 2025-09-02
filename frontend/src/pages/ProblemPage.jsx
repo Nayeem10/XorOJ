@@ -4,7 +4,9 @@ import { useParams } from "react-router-dom";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import Card from "../components/Card";
 import { apiFetch } from "../api/client";
-import CodeEditorPanel from "../components/CodeEditorPanel";
+
+import IDE from "../components/IDE.jsx";
+
 import "../styles.css";
 
 export default function ProblemPage() {
@@ -43,10 +45,10 @@ export default function ProblemPage() {
   if (!problem) return <p className="text-center mt-6">Problem not found.</p>;
 
   return (
-    <div className="h-[calc(100vh-4rem)] px-2 py-4">
-      <PanelGroup direction="horizontal">
+    <div className="h-[calc(100vh-4rem)] px-2 py-4 flex flex-col">
+      <PanelGroup direction="horizontal" className="flex-1 min-h-0">
         {/* LEFT SIDE - Problem Details */}
-        <Panel defaultSize={50} minSize={30}>
+        <Panel defaultSize={50} minSize={30} className="h-full">
           <div className="space-y-6 pr-3 h-full overflow-auto">
             <Card className="problem-header">
               <div className="text-center">
@@ -59,35 +61,25 @@ export default function ProblemPage() {
               </div>
             </Card>
 
-          <Card className="problem-statement-card" title="Problem Statement">
-            <div
-              className="prose max-w-none"
-              dangerouslySetInnerHTML={{ __html: problem.statement }}
-            />
-          </Card>
+            <Card className="problem-statement-card" title="Problem Statement">
+              <div
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: problem.statement }}
+              />
+            </Card>
 
-          <Card title="Tutorial / Notes">
-            <p className="text-gray-500">Tutorial feature coming soon!</p>
-          </Card>
-        </div>
+            <Card title="Tutorial / Notes">
+              <p className="text-gray-500">Tutorial feature coming soon!</p>
+            </Card>
+          </div>
         </Panel>
 
         <PanelResizeHandle className="w-2 bg-gray-200 hover:bg-gray-300 transition-colors" />
 
         {/* RIGHT SIDE - Code Editor */}
-        <Panel defaultSize={50} minSize={30}>
-          <div className="h-full pl-3 overflow-auto">
-            <Card title="Submit Solution" className="h-full flex flex-col">
-              <div className="flex-1">
-                <CodeEditorPanel
-                  initialCode={"// Write your code here\n"}
-                  initialLanguage="cpp"
-                  submitting={submitting}
-                  message={message}
-                  onSubmit={handleSubmit}
-                />
-              </div>
-            </Card>
+        <Panel defaultSize={50} minSize={30} className="h-full flex flex-col min-h-0">
+          <div className="flex-1 min-h-0 flex flex-col">
+            <IDE initialStdin={problem.sampleInput || ""} />
           </div>
         </Panel>
       </PanelGroup>

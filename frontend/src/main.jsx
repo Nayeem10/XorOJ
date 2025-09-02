@@ -39,6 +39,8 @@ import SolutionFiles from "./pages/problem-editor/SolutionFiles.jsx";
 import Invocations from "./pages/problem-editor/Invocations.jsx";
 import ManageAccess from "./pages/problem-editor/ManageAccess.jsx";
 
+// IDE Page
+import IDE from "./components/IDE.jsx";
 
 // Auth Pages
 import Login from './pages/Login.jsx'
@@ -116,9 +118,13 @@ const router = createBrowserRouter([
       { path: 'contests/:id/problems/:pid', element: <ProblemPage /> },
       { path: 'contests/:id/my', element: <ContestMySubmissionsPage /> },
       { path: 'contests/:id/submissions/:pageNumber', element: <ContestAllSubmissionsPage /> },
-      { path: 'contests/:id/standings', element: <ContestStandingsPage /> } 
+      { path: 'contests/:id/standings', element: <ContestStandingsPage /> }
+
     ],
+
   },
+  { path: 'IDE/code', element: <IDE /> }
+
 ])
 
 createRoot(document.getElementById('root')).render(
