@@ -1,4 +1,3 @@
-// src/pages/SolutionFiles.jsx
 import React, { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import Button from "../../components/Button.jsx";
@@ -6,7 +5,7 @@ import Button from "../../components/Button.jsx";
 export default function SolutionFiles() {
   const { problemData, setProblemData } = useOutletContext();
 
-  const [solutions, setSolutions] = useState(problemData?.solutions || []);
+  const [solutions, setSolutions] = useState(problemData?.solutionFiles || []);
   const [showModal, setShowModal] = useState(false);
   const [newSolution, setNewSolution] = useState({ id: "", file: null });
   const [loading, setLoading] = useState(false);
@@ -40,18 +39,36 @@ export default function SolutionFiles() {
       const savedFile = await res.json();
 
       // update local state
-      setSolutionFiles((prev) => [...prev, savedFile]);
+      setSolutions((prev) => [...prev, savedFile]);
 
       // update shared problemData
       setProblemData((prev) => ({
         ...prev,
         solutionFiles: [...(prev.solutionFiles || []), savedFile],
       }));
-
     } catch (err) {
       console.error(err);
       alert("Failed to create solution file");
     }
+  };
+
+  // Wrapper for modal button
+  const handleCreateSolution = async () => {
+    if (!newSolution.id || !newSolution.file) {
+      alert("Please provide both ID and a .cpp file");
+      return;
+    }
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("id", newSolution.id);
+    formData.append("file", newSolution.file);
+
+    await createSolutionFile(formData);
+
+    setNewSolution({ id: "", file: null });
+    setShowModal(false);
+    setLoading(false);
   };
 
   // Delete a solution file
@@ -64,20 +81,18 @@ export default function SolutionFiles() {
       if (!res.ok) throw new Error("Failed to delete solution file");
 
       // update local state
-      setSolutionFiles((prev) => prev.filter((f) => f.id !== id));
+      setSolutions((prev) => prev.filter((f) => f.id !== id));
 
       // update shared problemData
       setProblemData((prev) => ({
         ...prev,
         solutionFiles: (prev.solutionFiles || []).filter((f) => f.id !== id),
       }));
-
     } catch (err) {
       console.error(err);
       alert("Failed to delete solution file");
     }
   };
-
 
   return (
     <div className="p-4">
@@ -109,7 +124,7 @@ export default function SolutionFiles() {
               <td className="border p-2">{s.fileName}</td>
               <td className="border p-2 text-center">
                 <Button
-                  onClick={() => handleDeleteSolution(s.id)}
+                  onClick={() => deleteSolutionFile(s.id)}
                   className="bg-red-600 hover:bg-red-700 px-2 py-1 text-sm"
                 >
                   Delete

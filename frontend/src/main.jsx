@@ -71,25 +71,12 @@ const router = createBrowserRouter([
       { path: 'author/problems', element: <AuthorMyProblems /> },
       { path: 'author/contests', element: <AuthorMyContests /> },
 
-      {
-        path: 'author/problems/create',
-        element: <ProblemEditor />,
-        children: [
-          { path: 'general', element: <GeneralInfo /> },
-          { path: 'statement', element: <Statement /> },
-          { path: 'validator', element: <Validator /> },
-          { path: 'generator', element: <Generator /> },
-          { path: 'checker', element: <Checker /> },
-          { path: 'tests', element: <Tests /> },
-          { path: 'solutions', element: <SolutionFiles /> },
-          { path: 'invocations', element: <Invocations /> },
-          { path: 'access', element: <ManageAccess /> },
-        ],
-      },
+      
       {
         path: 'author/problems/:problemId/edit',
         element: <ProblemEditor />,
         children: [
+          { index: true, element: <Navigate to="general" replace /> },
           { path: 'general', element: <GeneralInfo /> },
           { path: 'statement', element: <Statement /> },
           { path: 'validator', element: <Validator /> },
