@@ -79,7 +79,7 @@ const router = createBrowserRouter([
           { index: true, element: <Navigate to="general" replace /> },
           { path: 'general', element: <GeneralInfo /> },
           { path: 'statement', element: <Statement /> },
-          { path: 'validator', element: <Validator /> },
+          // { path: 'validator', element: <Validator /> },
           { path: 'generator', element: <Generator /> },
           { path: 'checker', element: <Checker /> },
           { path: 'tests', element: <Tests /> },

@@ -6,7 +6,8 @@ import { apiFetch } from "../../api/client.js";
 
 export default function Generator() {
   const { problemData, setProblemData } = useOutletContext();
-  const [generators, setGenerators] = useState(problemData?.generatorFiles || []);
+  const generators = problemData?.generatorFiles || [];
+
   const [showModal, setShowModal] = useState(false);
   const [newGenerator, setNewGenerator] = useState({ id: "", file: null });
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,7 @@ export default function Generator() {
     setNewGenerator((prev) => ({ ...prev, file }));
   };
 
-  // Create generator file (API call)
+  // Create generator file
   const createGenerator = async () => {
     if (!newGenerator.id.trim() || !newGenerator.file) {
       alert("Please provide both an ID and a .cpp file!");
@@ -48,49 +49,58 @@ export default function Generator() {
       const res = await apiFetch(`/api/edit/problems/${problemId}/generator`, {
         method: "POST",
         body: formData,
-        headers: {} // Let browser set content type with boundary for FormData
+        headers: {}, // Let browser set content type
       });
 
-      if (!res) throw new Error("Failed to create generator");
+      if (!res || res.success === false) {
+        throw new Error("Failed to create generator");
+      }
 
-      const savedGenerator = await res;
+      // Construct generator object ourselves
+      const generatorObj = {
+        id: newGenerator.id,
+        fileName: newGenerator.file.name,
+      };
 
-      // update local + shared state
-      setGenerators((prev) => [...prev, savedGenerator]);
+      // Update context state
       setProblemData((prev) => ({
         ...prev,
-        generatorFiles: [...(prev.generatorFiles || []), savedGenerator],
+        generatorFiles: [...(prev.generatorFiles || []), generatorObj],
       }));
 
       setShowModal(false);
       setNewGenerator({ id: "", file: null });
     } catch (err) {
-      // console.error(err);
       alert("Failed to create generator");
     } finally {
       setLoading(false);
     }
   };
 
-  // Delete generator (API call)
+  // Delete generator
   const deleteGenerator = async (id) => {
     try {
-      console.log("Deleting generator with ID:", id);
       const res = await apiFetch(`/api/edit/problems/${problemId}/generator/${id}`, {
         method: "DELETE",
       });
-      if (!res) throw new Error("Failed to delete generator");
 
-      // update local + shared state
-      setGenerators((prev) => prev.filter((g) => g.id !== id));
+      if (!res || res.success === false) {
+        throw new Error("Failed to delete generator");
+      }
+
       setProblemData((prev) => ({
         ...prev,
         generatorFiles: (prev.generatorFiles || []).filter((g) => g.id !== id),
       }));
     } catch (err) {
-      // console.error(err);
       alert("Failed to delete generator");
     }
+  };
+
+  // View generator file
+  const viewGenerator = (id) => {
+    const url = `/api/edit/problems/${problemId}/generator/${id}/view`;
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -108,31 +118,41 @@ export default function Generator() {
       </div>
 
       {/* Generators Table */}
-      <table className="w-full border-collapse border">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border p-2">ID</th>
-            <th className="border p-2">File</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {generators.map((g) => (
-            <tr key={g.id}>
-              <td className="border p-2 text-center">{g.id}</td>
-              <td className="border p-2">{g.fileName}</td>
-              <td className="border p-2 text-center">
-                <Button
-                  onClick={() => deleteGenerator(g.id)}
-                  className="bg-red-600 hover:bg-red-700 px-2 py-1 text-sm"
-                >
-                  Delete
-                </Button>
-              </td>
+      {generators.length > 0 ? (
+        <table className="w-full border-collapse border">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border p-2">ID</th>
+              <th className="border p-2">File</th>
+              <th className="border p-2">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {generators.map((g) => (
+              <tr key={g.id}>
+                <td className="border p-2 text-center">{g.id}</td>
+                <td className="border p-2">{g.fileName}</td>
+                <td className="border p-2 text-center space-x-2">
+                  <Button
+                    onClick={() => viewGenerator(g.id)}
+                    className="bg-green-600 hover:bg-green-700 px-2 py-1 text-sm"
+                  >
+                    View
+                  </Button>
+                  <Button
+                    onClick={() => deleteGenerator(g.id)}
+                    className="bg-red-600 hover:bg-red-700 px-2 py-1 text-sm"
+                  >
+                    Delete
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="text-gray-500">No generators added yet.</p>
+      )}
 
       {/* Modal for Add Generator */}
       {showModal && (
@@ -140,13 +160,17 @@ export default function Generator() {
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h3 className="text-lg font-bold mb-4">Add Generator</h3>
 
-            <label className="block mb-2">Generator ID</label>
+            <label className="block mb-2">Generator ID (number)</label>
             <input
-              type="text"
+              type="number"
+              min="1"
               className="w-full border rounded px-2 py-1 mb-3"
               value={newGenerator.id}
               onChange={(e) =>
-                setNewGenerator({ ...newGenerator, id: e.target.value })
+                setNewGenerator({
+                  ...newGenerator,
+                  id: e.target.value.replace(/\D/g, ""), // only digits
+                })
               }
             />
 

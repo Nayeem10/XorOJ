@@ -4,7 +4,7 @@ import { NavLink, Outlet, useParams, useLocation } from "react-router-dom";
 const tabs = [
   { name: "General Info", path: "general" },
   { name: "Statement", path: "statement" },
-  { name: "Validator", path: "validator" },
+  // { name: "Validator", path: "validator" },
   { name: "Generator", path: "generator" },
   { name: "Checker", path: "checker" },
   { name: "Tests", path: "tests" },
