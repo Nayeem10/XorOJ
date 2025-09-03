@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "problems")
@@ -25,7 +25,17 @@ public class Problem {
     private String title;
     
     @Column(columnDefinition = "TEXT")
-    private String statement;
+    private String description;
+    @Column(columnDefinition = "TEXT")
+    private String inputFormat;
+    @Column(columnDefinition = "TEXT")
+    private String outputFormat;
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+    @Column(columnDefinition = "TEXT")
+    private String sampleInput;
+    @Column(columnDefinition = "TEXT")
+    private String sampleOutput;
 
     @Column(columnDefinition = "integer default 0")
     private int problemNum;
@@ -33,7 +43,7 @@ public class Problem {
     private Long authorId;
 
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ProblemContributor> contributors;
+    private List<ProblemContributor> contributors;
 
     @Min(value = 800)
     @Max(value = 4000)
@@ -51,6 +61,14 @@ public class Problem {
     @ElementCollection
     @CollectionTable(name = "problem_tags", joinColumns = @JoinColumn(name = "problem_id"))
     @Column(name = "tag")
-    private Set<String> tags;
-    
+    private List<String> tags;
+
+    String inputFileType;
+    String outputFileType;
+
+    String testPath;
+    String solutionPath;
+    String checkerPath;
+    String validatorPath;
+
 }

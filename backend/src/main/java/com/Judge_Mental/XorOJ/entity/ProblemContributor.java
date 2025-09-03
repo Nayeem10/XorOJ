@@ -4,37 +4,54 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import java.io.Serializable;
 
 @Entity
 @Table(name = "problem_contributors")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class ProblemContributor {
     
     @EmbeddedId
-    private ProblemContributorId id;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
+    private ProblemContributorId id = new ProblemContributorId();
+
+    @ManyToOne
     @MapsId("problemId")
     @JoinColumn(name = "problem_id")
     private Problem problem;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
+
+    @ManyToOne
     @MapsId("userId")
     @JoinColumn(name = "user_id")
     private XUser user;
-    
+
     @Column(nullable = false)
     private String role;
-
+    
+    public ProblemContributor(Problem problem, XUser user, String role) {
+        this.problem = problem;
+        this.user = user;
+        this.role = role;
+    }
+    
+    public ProblemContributor(Long problemId, Long userId, String role) {
+        this.id = new ProblemContributorId(problemId, userId);
+        this.role = role;
+    }
+    
     @Embeddable
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @EqualsAndHashCode
     public static class ProblemContributorId implements Serializable {
+        private static final long serialVersionUID = 1L;
+        
+        @Column(name = "problem_id")
         private Long problemId;
+        
+        @Column(name = "user_id")
         private Long userId;
     }
 }

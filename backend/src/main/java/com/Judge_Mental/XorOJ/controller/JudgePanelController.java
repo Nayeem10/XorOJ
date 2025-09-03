@@ -30,15 +30,12 @@ public class JudgePanelController {
     private ContestService contestService;
 
     @PostMapping("/problems/init")
-    public ResponseEntity<Problem> createProblem(@RequestBody Problem problem) {
-        Problem createdProblem = problemService.createProblem(problem);
+    public ResponseEntity<Problem> createProblem(
+        @RequestBody Problem problem,
+        @AuthenticationPrincipal(expression = "user") XUser user
+    ) {
+        Problem createdProblem = problemService.createProblem(problem, user.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProblem);
-    }
-
-    @PostMapping("/problems/update")
-    public ResponseEntity<Problem> updateProblem(@RequestBody Problem problem) {
-        Problem updatedProblem = problemService.updateProblem(problem);
-        return ResponseEntity.ok(updatedProblem);
     }
 
     @GetMapping("/problems/{id}")

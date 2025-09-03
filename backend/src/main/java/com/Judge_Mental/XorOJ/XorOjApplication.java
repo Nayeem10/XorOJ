@@ -58,7 +58,7 @@ public class XorOjApplication {
             // Create problems
             Problem problem1 = new Problem();
             problem1.setTitle("Two Sum");
-            problem1.setStatement("Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.");
+            problem1.setDescription("Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.");
             problem1.setDifficultyRating(1000); // Easy
             problem1.setAuthorId(user1.getId());
             problem1.setTimeLimit(1000); // 1 second
@@ -66,7 +66,7 @@ public class XorOjApplication {
 
             Problem problem2 = new Problem();
             problem2.setTitle("Reverse String");
-            problem2.setStatement("Write a function that reverses a string. The input string is given as an array of characters s.");
+            problem2.setDescription("Write a function that reverses a string. The input string is given as an array of characters s.");
             problem2.setDifficultyRating(800); // Easy
             problem2.setTimeLimit(1000);
             problem2.setMemoryLimit(256000);

@@ -29,14 +29,14 @@ export default function SolutionFiles() {
   // Create a solution file
   const createSolutionFile = async (newFile) => {
     try {
-      const res = await apiFetch(`/api/problems/${problemId}/solutions`, {
+      const res = await apiFetch(`/api/edit/problems/${problemId}/solutions`, {
         method: "POST",
         body: newFile, // FormData with unique ID + .cpp file
       });
 
-      if (!res.ok) throw new Error("Failed to upload solution file");
+      if (!res) throw new Error("Failed to upload solution file");
 
-      const savedFile = await res.json();
+      const savedFile = await res;
 
       // update local state
       setSolutions((prev) => [...prev, savedFile]);
@@ -47,7 +47,7 @@ export default function SolutionFiles() {
         solutionFiles: [...(prev.solutionFiles || []), savedFile],
       }));
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("Failed to create solution file");
     }
   };
@@ -74,11 +74,11 @@ export default function SolutionFiles() {
   // Delete a solution file
   const deleteSolutionFile = async (id) => {
     try {
-      const res = await apiFetch(`/api/problems/${problemId}/solutions/${id}`, {
+      const res = await apiFetch(`/api/edit/problems/${problemId}/solutions/${id}`, {
         method: "DELETE",
       });
 
-      if (!res.ok) throw new Error("Failed to delete solution file");
+      if (!res) throw new Error("Failed to delete solution file");
 
       // update local state
       setSolutions((prev) => prev.filter((f) => f.id !== id));
@@ -89,7 +89,7 @@ export default function SolutionFiles() {
         solutionFiles: (prev.solutionFiles || []).filter((f) => f.id !== id),
       }));
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("Failed to delete solution file");
     }
   };

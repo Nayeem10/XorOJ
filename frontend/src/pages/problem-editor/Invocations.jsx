@@ -40,14 +40,14 @@ export default function Invocations() {
         solutions: selectedSolutions,
         tests: selectedTests,
       };
-      const res = await apiFetch(`/api/problems/${problemId}/invocations`, {
+      const res = await apiFetch(`/api/edit/problems/${problemId}/invocations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error("Failed to create invocation");
+      if (!res) throw new Error("Failed to create invocation");
 
-      const saved = await res.json();
+      const saved = await res;
       const updated = [...invocations, saved];
       setInvocations(updated);
       setProblemData((prev) => ({ ...prev, invocations: updated }));
@@ -58,7 +58,7 @@ export default function Invocations() {
       setSelectedTests([]);
       setShowModal(false);
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("Failed to create invocation");
     }
   };
@@ -66,16 +66,16 @@ export default function Invocations() {
   // Delete invocation
   const removeInvocation = async (id) => {
     try {
-      const res = await apiFetch(`/api/problems/${problemId}/invocations/${id}`, {
+      const res = await apiFetch(`/api/edit/problems/${problemId}/invocations/${id}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Failed to delete invocation");
+      if (!res) throw new Error("Failed to delete invocation");
 
       const updated = invocations.filter((i) => i.id !== id);
       setInvocations(updated);
       setProblemData((prev) => ({ ...prev, invocations: updated }));
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("Failed to delete invocation");
     }
   };

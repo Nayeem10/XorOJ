@@ -5,7 +5,7 @@ export default function CodeEditor({
   language = "cpp",      // "cpp" | "java" | "python"
   value,
   onChange,
-  height = "400px",
+  height = "100%",
 }) {
   const monacoRef = useRef(null);
   const editorRef = useRef(null);
@@ -134,7 +134,7 @@ export default function CodeEditor({
   };
 
   return (
-    <div className="w-full h-full flex-1 min-h-0 border rounded overflow-hidden" style={{ height: "100%" }}>
+    <div className="w-full h-full flex-1 min-h-0 border rounded overflow-auto">
       <Editor
         height="100%"
         width="100%"

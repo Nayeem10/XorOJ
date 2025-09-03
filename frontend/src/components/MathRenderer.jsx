@@ -1,47 +1,57 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
-export default function MathRenderer({ content }) {
-  const containerRef = useRef(null);
-  const [mathJaxLoaded, setMathJaxLoaded] = useState(false);
+let mjLoadPromise = null;
 
-  // Load MathJax script once
-  useEffect(() => {
-    if (!window.MathJax) {
-      // Configure MathJax BEFORE loading the script
-
+function ensureMathJax() {
+  if (!mjLoadPromise) {
+    mjLoadPromise = (async () => {
+      // Configure BEFORE loading the bundle
       window.MathJax = {
         tex: {
+          inlineMath: [["$", "$"], ["\\(", "\\)"]],
           displayMath: [["$$", "$$"], ["\\[", "\\]"]],
         },
         chtml: {
-          displayAlign: "left", // 👈 force left alignment
+          displayAlign: "left", // left-align display math
         },
-        svg: {
-          displayAlign: "left", // 👈 in case SVG output is used
-        },
+        // Don’t autostart; we’ll call typesetPromise manually
+        options: { enableMenu: false },
+        startup: { typeset: false },
       };
 
-      const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
-      script.async = true;
-      script.onload = () => setMathJaxLoaded(true);
-      document.head.appendChild(script);
-    } else {
-      setMathJaxLoaded(true);
-    }
-  }, []);
+      // Load the **local** ES5 bundle (no CDN)
+      await import("mathjax/es5/tex-chtml-full.js");
+      // After this, window.MathJax is ready with typesetPromise
+    })();
+  }
+  return mjLoadPromise;
+}
 
-  // Render LaTeX whenever content or MathJax loading changes
+export default function MathRenderer({ content }) {
+  const containerRef = useRef(null);
+
   useEffect(() => {
-    if (mathJaxLoaded && containerRef.current) {
+    let cancelled = false;
+
+    (async () => {
+      await ensureMathJax();
+      if (cancelled || !containerRef.current) return;
+
+      // Inject your combined HTML (with $$…$$ etc.)
       containerRef.current.innerHTML = content || "";
-      window.MathJax.typesetPromise([containerRef.current]).catch((err) =>
-        console.error("MathJax typeset error:", err)
-      );
-    }
-  }, [content, mathJaxLoaded]);
+
+      // Typeset only this container
+      try {
+        await window.MathJax.typesetPromise([containerRef.current]);
+      } catch (err) {
+        console.error("MathJax typeset error:", err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [content]);
 
   return <div ref={containerRef} className="prose max-w-full text-left" />;
 }
-
-

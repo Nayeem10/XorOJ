@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class CppExecutor {
 
+    // Thread-local to carry the container name into run() without changing signatures
+    private static final ThreadLocal<String> CURRENT_CONTAINER_NAME = new ThreadLocal<>();
+
     public static class RunResult {
         public final int exitCode;
         public final String stdout;
@@ -62,25 +65,34 @@ public class CppExecutor {
         String srcMount = toDockerMountPath(srcDir.toAbsolutePath());
         String binMount = toDockerMountPath(binDir.toAbsolutePath());
 
-    List<String> cmd = new ArrayList<>(List.of(
-        "docker", "run", "--rm",
-        "--network", "none",
-        "--cpus=" + cpuCores,
-        "-m", memoryMB + "m",
-        "--pids-limit", "256",
-        "--read-only",
-        "-v", srcMount + ":/work:ro",
-        "-v", binMount + ":/out:rw",
-        "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
-        "gcc-time:13",
-        "bash", "-lc",
-        // Compile, then run with /usr/bin/time for resource usage
-        "g++ -O2 -std=c++17 /work/main.cpp -o /out/main && " +
-        "/usr/bin/time -f 'TIME_USED_MS=%e\\nMEM_USED_KB=%M' timeout " + timeLimitSeconds + "s /out/main < /work/input.txt"
-    ));
+        // Unique container name so we can kill it on timeout
+        String containerName = "cpp-job-" + System.nanoTime();
+        CURRENT_CONTAINER_NAME.set(containerName);
 
-        return run(cmd,  // overall hard cap (compile + run) — add a small buffer
-                (long) (timeLimitSeconds * 1000L + 10_000L));
+        List<String> cmd = new ArrayList<>(List.of(
+            "docker", "run", "--rm",
+            "--name", containerName,                 // <-- added
+            "--network", "none",
+            "--cpus=" + cpuCores,
+            "-m", memoryMB + "m",
+            "--pids-limit", "256",
+            "--read-only",
+            "-v", srcMount + ":/work:ro",
+            "-v", binMount + ":/out:rw",
+            "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
+            "gcc-time:13",
+            "bash", "-lc",
+            // Compile, then run with /usr/bin/time for resource usage
+            "g++ -O2 -std=c++17 /work/main.cpp -o /out/main && " +
+            "/usr/bin/time -f 'TIME_USED_MS=%e\\nMEM_USED_KB=%M' timeout " + timeLimitSeconds + "s /out/main < /work/input.txt"
+        ));
+
+        try {
+            return run(cmd,  // overall hard cap (compile + run) — add a small buffer
+                    (long) (timeLimitSeconds * 1000L + 10_000L));
+        } finally {
+            CURRENT_CONTAINER_NAME.remove();
+        }
     }
 
     private static RunResult run(List<String> command, long timeoutMillis) throws IOException, InterruptedException {
@@ -95,6 +107,18 @@ public class CppExecutor {
         boolean finished = p.waitFor(timeoutMillis, TimeUnit.MILLISECONDS);
         if (!finished) {
             p.destroyForcibly();
+
+            // *** FIX: ensure the container is not orphaned ***
+            String name = CURRENT_CONTAINER_NAME.get();
+            if (name != null && !name.isBlank()) {
+                try {
+                    new ProcessBuilder("docker", "rm", "-f", name)
+                        .redirectErrorStream(true)
+                        .start()
+                        .waitFor(3, TimeUnit.SECONDS);
+                } catch (Exception ignore) {}
+            }
+
             return new RunResult(124, "", "Runner timed out (hard cap).", -1, -1);
         }
         int code = p.exitValue();

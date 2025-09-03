@@ -42,22 +42,22 @@ export default function MyProblems() {
     setError("");
 
     try {
-      // const data = await apiFetch("/api/problems/init", {
-      //   method: "POST",
-      //   body: JSON.stringify({ title: newTitle.trim() }),
-      // });
+      const data = await apiFetch("/api/author/problems/init", {
+        method: "POST",
+        body: JSON.stringify({ title: newTitle.trim() }),
+      });
 
-      const data = {
-        title: newTitle,
-        id: 123,          // dummy problem id
-        inputFile: "stdin",
-        outputFile: "stdout",
-        timeLimit: 1000,
-        memoryLimit: 256 * 1024, // KB
-        interactive: false,
-        tags: [],
-        contestId: null,
-      };
+      // const data = {
+      //   title: newTitle,
+      //   id: 123,          // dummy problem id
+      //   inputFile: "stdin",
+      //   outputFile: "stdout",
+      //   timeLimit: 1000,
+      //   memoryLimit: 256 * 1024, // KB
+      //   interactive: false,
+      //   tags: [],
+      //   contestId: null,
+      // };
 
       if (!data || !data.id) {
         setError("Failed to create problem. Please try again.");
@@ -67,7 +67,7 @@ export default function MyProblems() {
       // Redirect to ProblemEditor page for the new problem
       navigate(`/author/problems/${data.id}/edit`, { state: { problemData: data } });
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       setError("Failed to create problem. Please try again.");
     } finally {
       setCreating(false);

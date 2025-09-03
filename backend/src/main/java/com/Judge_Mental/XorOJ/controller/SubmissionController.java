@@ -64,14 +64,11 @@ public class SubmissionController {
     //     return SubmissionResponseDTO.fromSubmission(savedSubmission);
     // }
 
-    public record runRequest(String code, String input) {}
+    public record runRequest(String code, String language, String stdin) {}
     @PostMapping("/test")
     public RunResult submitSolution(
         @RequestBody runRequest request) throws IOException, InterruptedException {
-            System.out.println(request.code());
-            System.out.println(request.input());
-
-        return judgingService.runCodeWithTest(request.code(), request.input());
+        return judgingService.runCodeWithTest(request.code(), request.stdin());
     }
 
     @PostMapping(value = "/testfile", consumes = "multipart/form-data")

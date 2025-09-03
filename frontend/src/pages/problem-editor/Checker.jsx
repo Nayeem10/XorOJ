@@ -37,12 +37,12 @@ export default function Checker() {
       const formData = new FormData();
       formData.append("checkerFile", checkerFile);
 
-      const res = await fetch(`/api/problems/${problemId}/checker`, {
+      const res = await fetch(`/api/edit/problems/${problemId}/checker`, {
         method: "POST",
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Failed to save checker file");
+      if (!res) throw new Error("Failed to save checker file");
 
       // Update context
       setProblemData({ ...problemData, checkerFile})

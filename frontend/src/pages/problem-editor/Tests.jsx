@@ -32,15 +32,15 @@ export default function Tests() {
     }
 
     try {
-      const res = await apiFetch(`/api/problems/${problemId}/tests`, {
+      const res = await apiFetch(`/api/edit/problems/${problemId}/tests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newTest),
       });
 
-      if (!res.ok) throw new Error("Failed to save test");
+      if (!res) throw new Error("Failed to save test");
 
-      const savedTest = await res.json();
+      const savedTest = await res;
 
       // Update tests array: replace if ID exists, otherwise append
       const updatedTests = tests.filter((t) => t.id !== savedTest.id);
@@ -59,24 +59,24 @@ export default function Tests() {
       setShowManualForm(false);
       setShowGeneratedForm(false);
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("Failed to save test");
     }
   };
 
   const removeTest = async (id) => {
     try {
-      const res = await apiFetch(`/api/problems/${problemId}/tests/${id}`, {
+      const res = await apiFetch(`/api/edit/problems/${problemId}/tests/${id}`, {
         method: "DELETE",
       });
 
-      if (!res.ok) throw new Error("Failed to delete test");
+      if (!res) throw new Error("Failed to delete test");
 
       const updatedTests = tests.filter((t) => t.id !== id);
       setTests(updatedTests);
       setProblemData((prev) => ({ ...prev, tests: updatedTests }));
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("Failed to delete test");
     }
   };

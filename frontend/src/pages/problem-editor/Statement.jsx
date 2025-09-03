@@ -28,20 +28,20 @@ export default function Statement() {
     };
 
     try {
-      const res = await fetch(`/api/problems/${problemId}/statement`, {
+      const res = await fetch(`/api/edit/problems/${problemId}/statement`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Failed to save statement");
+      if (!res) throw new Error("Failed to save statement");
 
       // Update shared problemData in context
       setProblemData({ ...problemData, ...payload})
 
       alert("Statement saved successfully!");
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("Failed to save statement");
     }
   };

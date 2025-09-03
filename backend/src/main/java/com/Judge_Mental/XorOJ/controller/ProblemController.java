@@ -32,7 +32,7 @@ public class ProblemController {
     public ResponseEntity<Problem> getProblemById(
         @PathVariable Long id, 
         @AuthenticationPrincipal(expression = "user") XUser user) {
-        Problem problem = problemService.findProblemById(id, user.getId());
+        Problem problem = problemService.findProblemById(id);
 
         if (problem != null) {
             return ResponseEntity.ok(problem);

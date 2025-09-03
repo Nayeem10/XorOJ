@@ -14,6 +14,7 @@ export default function ContestStandingsPage() {
 
     apiFetch(`/api/standings/contests/${id}`)
       .then((data) => {
+        console.log(data);
         // Validate that we got a proper DTO
         if (!data || !data.rows || !Array.isArray(data.rows)) {
           throw new Error("Expected a StandingsDTO with a rows array");

@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import Button from "../../components/Button.jsx";
+import { apiFetch } from "../../api/client.js";
 
 export default function Generator() {
   const { problemData, setProblemData } = useOutletContext();
@@ -18,7 +19,7 @@ export default function Generator() {
     if (!file) return;
 
     if (!file.name.endsWith(".cpp")) {
-      alert("Please upload a .cpp file only!");
+      alert("Please upload .cpp file only!");
       e.target.value = null;
       return;
     }
@@ -44,14 +45,15 @@ export default function Generator() {
 
     try {
       setLoading(true);
-      const res = await apiFetch(`/api/problems/${problemId}/generator`, {
+      const res = await apiFetch(`/api/edit/problems/${problemId}/generator`, {
         method: "POST",
         body: formData,
+        headers: {} // Let browser set content type with boundary for FormData
       });
 
-      if (!res.ok) throw new Error("Failed to create generator");
+      if (!res) throw new Error("Failed to create generator");
 
-      const savedGenerator = await res.json();
+      const savedGenerator = await res;
 
       // update local + shared state
       setGenerators((prev) => [...prev, savedGenerator]);
@@ -63,7 +65,7 @@ export default function Generator() {
       setShowModal(false);
       setNewGenerator({ id: "", file: null });
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("Failed to create generator");
     } finally {
       setLoading(false);
@@ -73,11 +75,11 @@ export default function Generator() {
   // Delete generator (API call)
   const deleteGenerator = async (id) => {
     try {
-      const res = await apiFetch(`/api/problems/${problemId}/generator/${id}`, {
+      console.log("Deleting generator with ID:", id);
+      const res = await apiFetch(`/api/edit/problems/${problemId}/generator/${id}`, {
         method: "DELETE",
       });
-
-      if (!res.ok) throw new Error("Failed to delete generator");
+      if (!res) throw new Error("Failed to delete generator");
 
       // update local + shared state
       setGenerators((prev) => prev.filter((g) => g.id !== id));
@@ -86,7 +88,7 @@ export default function Generator() {
         generatorFiles: (prev.generatorFiles || []).filter((g) => g.id !== id),
       }));
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("Failed to delete generator");
     }
   };

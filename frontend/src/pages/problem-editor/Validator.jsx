@@ -20,7 +20,7 @@ export default function Validator() {
     if (!file) return;
 
     if (!file.name.endsWith(".cpp")) {
-      alert("Please upload a .cpp file only!");
+      alert("Please upload a .cpp file!");
       e.target.value = null; // reset input
       return;
     }
@@ -75,13 +75,13 @@ export default function Validator() {
 
       try {
         const res = await apiFetch(
-          `/api/problems/${problemId}/validate/tests/${test.id}`,
+          `/api/edit/problems/${problemId}/validate/tests/${test.id}`,
           { method: "POST", body: formData }
         );
-        const result = await res.json();
+        const result = await res;
         updatedTests[i] = { ...test, validatorVerdict: result.verdict, validatorComment: result.comment };
       } catch (err) {
-        console.error(err);
+        // console.error(err);
         alert(`Failed to run test #${test.id}`);
       }
     }
@@ -98,15 +98,15 @@ export default function Validator() {
       if (validatorFile) formData.append("validatorFile", validatorFile);
       formData.append("tests", JSON.stringify(tests));
 
-      const res = await apiFetch(`/api/problems/${problemId}/validate`, { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Failed to save validator data");
+      const res = await apiFetch(`/api/edit/problems/${problemId}/validate`, { method: "POST", body: formData });
+      if (!res) throw new Error("Failed to save validator data");
 
       // Update outlet context with saved data
       setProblemData((prev) => ({ ...prev, validatorFile, tests }));
 
       alert("Validator data saved successfully!");
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("Failed to save validator data");
     }
   };

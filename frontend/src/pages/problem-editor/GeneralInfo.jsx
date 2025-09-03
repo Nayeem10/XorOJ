@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import Button from "../../components/Button.jsx";
 
+import { apiFetch } from "../../api/client.js";
+
 // TagsInput Component
 function TagsInput({ problemData, setProblemData, availableTags }) {
   const [newTag, setNewTag] = useState("");
@@ -83,26 +85,25 @@ export default function GeneralInfo() {
     try {
       // Only send the selected fields
       const payload = {
-        inputFile: problemData.inputFile || "",
-        outputFile: problemData.outputFile || "",
+        inputFileType: problemData.inputFileType || "",
+        outputFileType: problemData.outputFileType || "",
         timeLimit: problemData.timeLimit || 1000,
         memoryLimit: problemData.memoryLimit || 256,
         contestId: problemData.contestId || "",
         tags: problemData.tags || [],
       };
 
-      const res = await apiFetch(`/api/problems/${problemData.id}/generalinfo`, {
+      const res = await apiFetch(`/api/edit/problems/${problemData.id}/generalinfo`, {
         method: "POST",
         body: JSON.stringify(payload),
       });
-
-      if (!res.ok) throw new Error("Failed to save general info");      
+      if (!res) throw new Error("Failed to save general info");      
 
       setProblemData({ ...problemData, ...payload });
 
       alert("Saved successfully!");
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("Failed to save general info");
     }
   };
