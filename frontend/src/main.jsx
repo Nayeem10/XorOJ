@@ -4,8 +4,9 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 
 import './index.css'
 
-// Layout
+// Layouts
 import AppLayout from './layouts/AppLayout.jsx'
+import AuthLayout from './layouts/AuthLayout.jsx'
 
 // Pages
 import HomePage from './pages/HomePage.jsx'
@@ -26,28 +27,28 @@ import ContestViewPage from './pages/ContestViewPage.jsx'
 import ContestProblemPage from './pages/ContestProblemPage.jsx'
 import ContestMySubmissionsPage from './pages/ContestMySubmissionsPage.jsx'
 import ContestAllSubmissionsPage from './pages/ContestAllSubmissionsPage.jsx'
-import ContestStandingsPage from "./pages/ContestStandingsPage.jsx";
+import ContestStandingsPage from "./pages/ContestStandingsPage.jsx"
 
 // Author Problem Editor with Tabs
-import ProblemEditor from "./pages/ProblemEditor.jsx";
-import GeneralInfo from "./pages/problem-editor/GeneralInfo.jsx";
-import Statement from "./pages/problem-editor/Statement.jsx";
-import Validator from "./pages/problem-editor/Validator.jsx";
-import Checker from "./pages/problem-editor/Checker.jsx";
-import Generator from "./pages/problem-editor/Generator.jsx";
-import Tests from "./pages/problem-editor/Tests.jsx";
-import SolutionFiles from "./pages/problem-editor/SolutionFiles.jsx";
-import Invocations from "./pages/problem-editor/Invocations.jsx";
-import ManageAccess from "./pages/problem-editor/ManageAccess.jsx";
+import ProblemEditor from "./pages/ProblemEditor.jsx"
+import GeneralInfo from "./pages/problem-editor/GeneralInfo.jsx"
+import Statement from "./pages/problem-editor/Statement.jsx"
+import Validator from "./pages/problem-editor/Validator.jsx"
+import Checker from "./pages/problem-editor/Checker.jsx"
+import Generator from "./pages/problem-editor/Generator.jsx"
+import Tests from "./pages/problem-editor/Tests.jsx"
+import SolutionFiles from "./pages/problem-editor/SolutionFiles.jsx"
+import Invocations from "./pages/problem-editor/Invocations.jsx"
+import ManageAccess from "./pages/problem-editor/ManageAccess.jsx"
 
 // Author Contest Editor with Tabs
-import ContestEditor from "./pages/ContestEditor.jsx";
-import ContestGeneral from "./pages/contest-editor/ContestGeneral.jsx";
-import ContestProblems from "./pages/contest-editor/ContestProblems.jsx";
-import ContestParticipants from "./pages/contest-editor/ContestParticipants.jsx";
+import ContestEditor from "./pages/ContestEditor.jsx"
+import ContestGeneral from "./pages/contest-editor/ContestGeneral.jsx"
+import ContestProblems from "./pages/contest-editor/ContestProblems.jsx"
+import ContestParticipants from "./pages/contest-editor/ContestParticipants.jsx"
 
 // IDE Page
-import IDE from "./components/IDE.jsx";
+import IDE from "./components/IDE.jsx"
 
 // Auth Pages
 import Login from './pages/Login.jsx'
@@ -61,11 +62,17 @@ function ProtectedLayout() {
 }
 
 const router = createBrowserRouter([
-  // Public routes
-  { path: '/login', element: <Login /> },
-  { path: '/register', element: <Register /> },
+  // Public (no header/footer)
+  {
+    path: '/',
+    element: <AuthLayout />,
+    children: [
+      { path: 'login', element: <Login /> },
+      { path: 'register', element: <Register /> },
+    ],
+  },
 
-  // Everything below shares Header/Footer and is protected
+  // Protected (with header/footer)
   {
     path: '/',
     element: <ProtectedLayout />,
@@ -86,13 +93,10 @@ const router = createBrowserRouter([
           { index: true, element: <Navigate to="general" replace /> },
           { path: 'general', element: <GeneralInfo /> },
           { path: 'statement', element: <Statement /> },
-          // { path: 'validator', element: <Validator /> },
           { path: 'generator', element: <Generator /> },
           { path: 'checker', element: <Checker /> },
           { path: 'tests', element: <Tests /> },
           { path: 'solutions', element: <SolutionFiles /> },
-          // { path: 'invocations', element: <Invocations /> },
-          // { path: 'access', element: <ManageAccess /> },
         ],
       },
 

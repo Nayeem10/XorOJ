@@ -24,25 +24,8 @@ export default function HomePage() {
 
   return (
     <div className="max-w-6xl mx-auto w-full">
-      {/* Hero */}
-      <section className="mt-8 md:mt-10 text-center">
-        <h1 className="text-3xl md:text-4xl font-semibold">
-          Welcome to <span className="font-bold">XorOJ</span>
-        </h1>
-
-        {/* Use .themed-text so it turns white in dark mode */}
-        <p className="mt-3 max-w-3xl mx-auto text-sm md:text-base opacity-80 themed-text">
-          Practice algorithms, run contests, and track your progress — all in one place.
-        </p>
-
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <Link to="/login" className="btn btn-primary">Login</Link>
-          <Link to="/register" className="btn btn-outline">Register</Link>
-        </div>
-      </section>
-
       {/* Carousel */}
-      <section className="mt-10">
+      <section className="mt-8 md:mt-10">
         <div
           className="relative overflow-hidden rounded-xl"
           style={{
