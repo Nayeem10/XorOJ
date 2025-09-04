@@ -27,7 +27,7 @@ export default function ProfileEditor() {
       // Merge editable fields into full profile object
       const payload = { ...profile, ...formData };
 
-      const res = await apiFetch(`/api/profile/${profile.username}/edit`, {
+      const res = await apiFetch(`/api/profile/edit`, {
         method: "POST",
         body: JSON.stringify(payload),
       });
