@@ -7,12 +7,12 @@ import java.util.Set;
 import java.util.HashSet;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import com.Judge_Mental.XorOJ.entity.Contest;
 import com.Judge_Mental.XorOJ.entity.Problem;
 import com.Judge_Mental.XorOJ.repo.ContestRepository;
+import com.Judge_Mental.XorOJ.util.Pair;
 
 
 @Service
@@ -20,6 +20,9 @@ public class ContestService {
 
     @Autowired
     private ContestRepository contestRepo;
+    
+    @Autowired
+    private ProblemService problemService;
 
     public Contest createContest(Long userId) {
         Contest contest = new Contest();
@@ -79,20 +82,23 @@ public class ContestService {
     public boolean updateContestProblems(Long contestId, List<Pair<Long, Integer>> requests) {
         Contest contest = findById(contestId);
         if (contest != null) {
-            Set<Problem> problemsToKeep = new HashSet<>();
+            Set<Problem> newProblemSet = new HashSet<>();
             
+            // Fetch and add each problem in the order specified by the requests list
             for (Pair<Long, Integer> request : requests) {
-                contest.getProblems().stream()
-                    .filter(problem -> problem.getId().equals(request.getFirst()))
-                    .findFirst()
-                    .ifPresent(problem -> {
-                        problem.setProblemNum(request.getSecond());
-                        problemsToKeep.add(problem);
-                    });
+                Long problemId = request.getFirst();
+                Integer problemNum = request.getSecond();
+                
+                Problem problem = problemService.findProblemById(problemId);
+                if (problem != null) {
+                    problem.setProblemNum(problemNum);
+                    newProblemSet.add(problem);
+                }
             }
             
+            // Replace all problems with the new set
             contest.getProblems().clear();
-            contest.getProblems().addAll(problemsToKeep);
+            contest.getProblems().addAll(newProblemSet);
             
             contestRepo.save(contest);
             return true;
