@@ -27,7 +27,7 @@ import ContestMySubmissionsPage from './pages/ContestMySubmissionsPage.jsx'
 import ContestAllSubmissionsPage from './pages/ContestAllSubmissionsPage.jsx'
 import ContestStandingsPage from "./pages/ContestStandingsPage.jsx";
 
-// // Author Problem Editor with Tabs
+// Author Problem Editor with Tabs
 import ProblemEditor from "./pages/ProblemEditor.jsx";
 import GeneralInfo from "./pages/problem-editor/GeneralInfo.jsx";
 import Statement from "./pages/problem-editor/Statement.jsx";
@@ -38,6 +38,13 @@ import Tests from "./pages/problem-editor/Tests.jsx";
 import SolutionFiles from "./pages/problem-editor/SolutionFiles.jsx";
 import Invocations from "./pages/problem-editor/Invocations.jsx";
 import ManageAccess from "./pages/problem-editor/ManageAccess.jsx";
+
+// Author Contest Editor with Tabs
+import ContestEditor from "./pages/ContestEditor.jsx";
+import ContestGeneral from "./pages/contest-editor/ContestGeneral.jsx";
+import ContestProblems from "./pages/contest-editor/ContestProblems.jsx";
+import ContestParticipants from "./pages/contest-editor/ContestParticipants.jsx";
+import ContestSettings from "./pages/contest-editor/ContestSettings.jsx";
 
 // IDE Page
 import IDE from "./components/IDE.jsx";
@@ -71,7 +78,7 @@ const router = createBrowserRouter([
       { path: 'author/problems', element: <AuthorMyProblems /> },
       { path: 'author/contests', element: <AuthorMyContests /> },
 
-      
+      // Author Problem Editor
       {
         path: 'author/problems/:problemId/edit',
         element: <ProblemEditor />,
@@ -89,7 +96,18 @@ const router = createBrowserRouter([
         ],
       },
 
-
+      // Author Contest Editor
+      {
+        path: 'author/contests/:contestId/edit',
+        element: <ContestEditor />,
+        children: [
+          { index: true, element: <Navigate to="general" replace /> },
+          { path: 'general', element: <ContestGeneral /> },
+          { path: 'problems', element: <ContestProblems /> },
+          { path: 'participants', element: <ContestParticipants /> },
+          { path: 'settings', element: <ContestSettings /> },
+        ],
+      },
 
       // Profile
       { path: 'profile/:username', element: <ProfilePage /> },
@@ -98,20 +116,18 @@ const router = createBrowserRouter([
       { path: 'problems', element: <ProblemSet /> },
       { path: 'problems/:pid', element: <ProblemPage /> },
       { path: 'create-problem', element: <CreateProblemPage /> },
-      
+
       // Contests
       { path: 'contests', element: <ContestListPage /> },
       { path: 'contests/:id/view', element: <ContestViewPage /> },
       { path: 'contests/:id/problems/:pid', element: <ProblemPage /> },
       { path: 'contests/:id/my', element: <ContestMySubmissionsPage /> },
       { path: 'contests/:id/submissions/:pageNumber', element: <ContestAllSubmissionsPage /> },
-      { path: 'contests/:id/standings', element: <ContestStandingsPage /> }
-
+      { path: 'contests/:id/standings', element: <ContestStandingsPage /> },
     ],
-
   },
-  { path: 'IDE/code', element: <IDE /> }
 
+  { path: 'IDE/code', element: <IDE /> },
 ])
 
 createRoot(document.getElementById('root')).render(

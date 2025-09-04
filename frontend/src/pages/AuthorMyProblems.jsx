@@ -48,18 +48,6 @@ export default function MyProblems() {
         body: JSON.stringify({ title: newTitle.trim() }),
       });
 
-      // const data = {
-      //   title: newTitle,
-      //   id: 123,          // dummy problem id
-      //   inputFile: "stdin",
-      //   outputFile: "stdout",
-      //   timeLimit: 1000,
-      //   memoryLimit: 256 * 1024, // KB
-      //   interactive: false,
-      //   tags: [],
-      //   contestId: null,
-      // };
-
       if (!data || !data.id) {
         setError("Failed to create problem. Please try again.");
         return;

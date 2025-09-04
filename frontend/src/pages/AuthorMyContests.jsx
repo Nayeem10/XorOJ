@@ -8,8 +8,11 @@ import Button from "../components/Button.jsx";
 export default function MyContests() {
   const [contests, setContests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+
   const navigate = useNavigate();
 
+  // Load existing contests
   useEffect(() => {
     async function loadContests() {
       try {
@@ -25,17 +28,41 @@ export default function MyContests() {
     loadContests();
   }, []);
 
+  // Handle create new contest
+  const handleCreate = async () => {
+    setCreating(true);
+    try {
+      const data = await apiFetch("/api/author/contests/init", {
+        method: "POST",
+      });
+
+      if (!data || !data.id) {
+        alert("Failed to create contest. Please try again.");
+        return;
+      }
+
+      // Navigate to ContestEditor with the returned contest data
+      navigate(`/author/contests/${data.id}/edit`, { state: { contestData: data } });
+    } catch (err) {
+      alert("Failed to create contest. Please try again.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   if (loading) return <div className="p-6">Loading contests...</div>;
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">My Contests</h1>
-        <Button onClick={() => navigate("/author/contests/create")}>
+        <Button onClick={handleCreate} loading={creating}>
           + Create Contest
         </Button>
       </div>
 
+      {/* No contests message */}
       {contests.length === 0 ? (
         <Card>
           <p className="text-gray-600">No contests yet. Create your first contest 🎉</p>
@@ -60,7 +87,7 @@ export default function MyContests() {
               <div className="mt-4 flex gap-2">
                 <Button
                   className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => navigate(`/author/contests/${c.id}/edit`)}
+                  onClick={() => navigate(`/author/contests/${c.id}/edit`, { state: { contestData: c } })}
                 >
                   Edit
                 </Button>
