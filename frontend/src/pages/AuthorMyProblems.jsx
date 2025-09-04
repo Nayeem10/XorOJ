@@ -111,12 +111,12 @@ export default function MyProblems() {
                 >
                   Edit
                 </Button>
-                <Button
+                {/* <Button
                   className="bg-gray-600 hover:bg-gray-700"
                   onClick={() => console.log("Preview problem", p.id)}
                 >
                   Preview
-                </Button>
+                </Button> */}
               </div>
             </Card>
           ))}

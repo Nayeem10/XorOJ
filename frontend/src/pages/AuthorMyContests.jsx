@@ -91,12 +91,7 @@ export default function MyContests() {
                 >
                   Edit
                 </Button>
-                <Button
-                  className="bg-gray-600 hover:bg-gray-700"
-                  onClick={() => console.log("Preview contest", c.id)}
-                >
-                  Preview
-                </Button>
+          
               </div>
             </Card>
           ))}

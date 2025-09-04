@@ -42,7 +42,7 @@ export default function ProblemPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, language }),
       });
-      setSubmitResult(data); // optionally show result
+      setSubmitResult(data); 
       alert("Submission successful!");
     } catch (err) {
       alert("Submission failed: " + err.message);
