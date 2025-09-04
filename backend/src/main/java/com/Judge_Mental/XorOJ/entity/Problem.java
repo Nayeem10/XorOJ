@@ -39,7 +39,7 @@ public class Problem {
     private String sampleOutput;
 
     @Column(columnDefinition = "integer default 0")
-    private int problemNum;
+    private Integer problemNum;
 
     private Long authorId;
 

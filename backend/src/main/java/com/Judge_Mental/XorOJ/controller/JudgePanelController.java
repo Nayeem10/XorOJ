@@ -66,9 +66,7 @@ public class JudgePanelController {
     public ResponseEntity<Contest> createContest(
         @AuthenticationPrincipal(expression = "user") XUser user
     ) {
-        Contest contest = new Contest();
-        contest.setAuthorId(user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(contest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(contestService.createContest(user.getId()));
     }
 
 }

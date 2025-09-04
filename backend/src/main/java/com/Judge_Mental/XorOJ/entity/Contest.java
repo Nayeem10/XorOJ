@@ -1,6 +1,7 @@
 package com.Judge_Mental.XorOJ.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,16 +19,13 @@ public class Contest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String title;
 
     @Column(length = 1000)
     private String description;
 
-    @Column(nullable = false)
     private LocalDateTime startTime;
 
-    @Column(nullable = false)
     private LocalDateTime endTime;
 
     private Long authorId;
@@ -58,5 +56,13 @@ public class Contest {
         UPCOMING,
         RUNNING,
         ENDED
+    }
+    
+    @AssertTrue(message = "End time must be after start time")
+    public boolean isEndTimeAfterStartTime() {
+        if (startTime == null || endTime == null) {
+            return true;
+        }
+        return endTime.isAfter(startTime);
     }
 }
