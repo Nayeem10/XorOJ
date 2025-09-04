@@ -23,6 +23,7 @@ import AuthorMyContests from './pages/AuthorMyContests.jsx'
 // Contest Pages
 import ContestListPage from './pages/ContestListPage.jsx'
 import ContestViewPage from './pages/ContestViewPage.jsx'
+import ContestProblemPage from './pages/ContestProblemPage.jsx'
 import ContestMySubmissionsPage from './pages/ContestMySubmissionsPage.jsx'
 import ContestAllSubmissionsPage from './pages/ContestAllSubmissionsPage.jsx'
 import ContestStandingsPage from "./pages/ContestStandingsPage.jsx";
@@ -118,7 +119,7 @@ const router = createBrowserRouter([
       // Contests
       { path: 'contests', element: <ContestListPage /> },
       { path: 'contests/:id/view', element: <ContestViewPage /> },
-      { path: 'contests/:id/problems/:pid', element: <ProblemPage /> },
+      { path: 'contests/:id/problems/:pid', element: <ContestProblemPage /> },
       { path: 'contests/:id/my', element: <ContestMySubmissionsPage /> },
       { path: 'contests/:id/submissions/:pageNumber', element: <ContestAllSubmissionsPage /> },
       { path: 'contests/:id/standings', element: <ContestStandingsPage /> },

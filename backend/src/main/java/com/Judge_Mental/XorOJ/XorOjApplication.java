@@ -80,7 +80,7 @@ public class XorOjApplication {
             contest.setTitle("Weekly Contest #1");
             contest.setDescription("First weekly programming contest");
             contest.setStartTime(LocalDateTime.now().plusDays(0).plusHours(0).plusSeconds(30));
-            contest.setEndTime(LocalDateTime.now().plusDays(0).plusMinutes(3));
+            contest.setEndTime(LocalDateTime.now().plusDays(0).plusMinutes(30));
             contest.setAuthorId(admin.getId());
             contest.setProblems(new HashSet<>(Arrays.asList(problem1, problem2)));
             contest.setParticipants(new HashSet<>(Arrays.asList(user1)));
