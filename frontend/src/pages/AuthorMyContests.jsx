@@ -1,6 +1,7 @@
+// src/pages/MyContests.jsx
 import { useEffect, useState } from "react";
 import { apiFetch } from "../api/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import Card from "../components/Card.jsx";
 import Button from "../components/Button.jsx";
@@ -11,6 +12,7 @@ export default function MyContests() {
   const [creating, setCreating] = useState(false);
 
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Load existing contests
   useEffect(() => {
@@ -28,20 +30,26 @@ export default function MyContests() {
     loadContests();
   }, []);
 
+  // Auto-create if ?action=create
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      // clear param first so it doesn't loop if navigation fails
+      searchParams.delete("action");
+      setSearchParams(searchParams, { replace: true });
+      handleCreate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Handle create new contest
   const handleCreate = async () => {
     setCreating(true);
     try {
-      const data = await apiFetch("/api/author/contests/init", {
-        method: "POST",
-      });
-
+      const data = await apiFetch("/api/author/contests/init", { method: "POST" });
       if (!data || !data.id) {
         alert("Failed to create contest. Please try again.");
         return;
       }
-
-      // Navigate to ContestEditor with the returned contest data
       navigate(`/author/contests/${data.id}/edit`, { state: { contestData: data } });
     } catch (err) {
       alert("Failed to create contest. Please try again.");
@@ -76,22 +84,19 @@ export default function MyContests() {
               <div className="mt-3 grid grid-cols-2 gap-y-1 text-sm text-gray-600">
                 <span>Status: <b>{c.status}</b></span>
                 <span>Duration: <b>{c.duration} hours</b></span>
-                <span>
-                  Start: <b>{new Date(c.startTime).toLocaleString()}</b>
-                </span>
-                <span>
-                  End: <b>{new Date(c.endTime).toLocaleString()}</b>
-                </span>
+                <span>Start: <b>{new Date(c.startTime).toLocaleString()}</b></span>
+                <span>End: <b>{new Date(c.endTime).toLocaleString()}</b></span>
               </div>
 
               <div className="mt-4 flex gap-2">
                 <Button
                   className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => navigate(`/author/contests/${c.id}/edit`, { state: { contestData: c } })}
+                  onClick={() =>
+                    navigate(`/author/contests/${c.id}/edit`, { state: { contestData: c } })
+                  }
                 >
                   Edit
                 </Button>
-          
               </div>
             </Card>
           ))}

@@ -1,6 +1,7 @@
+// src/pages/MyProblems.jsx
 import { useEffect, useState } from "react";
 import { apiFetch } from "../api/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import Card from "../components/Card.jsx";
 import Button from "../components/Button.jsx";
@@ -14,13 +15,20 @@ export default function MyProblems() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Open modal automatically if ?action=create
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setShowModal(true);
+    }
+  }, [searchParams]);
 
   // Load existing problems
   useEffect(() => {
     async function loadProblems() {
       try {
         const data = await apiFetch("/api/author/problems/my");
-        console.log("Loaded problems:", data);
         setProblems(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to load problems", err);
@@ -31,6 +39,18 @@ export default function MyProblems() {
     }
     loadProblems();
   }, []);
+
+  const clearActionParam = () => {
+    if (searchParams.has("action")) {
+      searchParams.delete("action");
+      setSearchParams(searchParams, { replace: true });
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    clearActionParam();
+  };
 
   // Handle create new problem
   const handleCreate = async () => {
@@ -54,9 +74,9 @@ export default function MyProblems() {
       }
 
       // Redirect to ProblemEditor page for the new problem
+      clearActionParam();
       navigate(`/author/problems/${data.id}/edit`, { state: { problemData: data } });
     } catch (err) {
-      // console.error(err);
       setError("Failed to create problem. Please try again.");
     } finally {
       setCreating(false);
@@ -91,32 +111,15 @@ export default function MyProblems() {
                 <span>Memory: <b>{Math.floor(p.memoryLimit / 1000)} MB</b></span>
               </div>
 
-              {/* {p.tags.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {p.tags.map((tag, i) => (
-                    <span
-                      key={i}
-                      className="px-2 py-1 text-xs bg-gray-200 rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )} */}
-
               <div className="mt-4 flex gap-2">
                 <Button
                   className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => navigate(`/author/problems/${p.id}/edit`, { state: { problemData: p } })}
+                  onClick={() =>
+                    navigate(`/author/problems/${p.id}/edit`, { state: { problemData: p } })
+                  }
                 >
                   Edit
                 </Button>
-                {/* <Button
-                  className="bg-gray-600 hover:bg-gray-700"
-                  onClick={() => console.log("Preview problem", p.id)}
-                >
-                  Preview
-                </Button> */}
               </div>
             </Card>
           ))}
@@ -126,14 +129,14 @@ export default function MyProblems() {
       {/* Create Problem Modal */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
-            <h2 className="text-lg font-semibold mb-4">Create New Problem</h2>
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg w-full max-w-sm">
+            <h2 className="text-lg font-semibold mb-4 themed-text">Create New Problem</h2>
             {error && <p className="text-red-500 mb-2">{error}</p>}
 
             <input
               type="text"
               placeholder="Problem Title"
-              className="w-full border rounded px-2 py-1 mb-4"
+              className="w-full border rounded px-2 py-1 mb-4 bg-white dark:bg-slate-700 themed-text"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
             />
@@ -141,7 +144,7 @@ export default function MyProblems() {
             <div className="flex justify-end gap-2">
               <Button
                 className="bg-gray-400 hover:bg-gray-500"
-                onClick={() => setShowModal(false)}
+                onClick={closeModal}
               >
                 Cancel
               </Button>
