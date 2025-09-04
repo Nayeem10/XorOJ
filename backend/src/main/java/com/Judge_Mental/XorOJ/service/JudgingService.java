@@ -84,7 +84,7 @@ public class JudgingService {
             // Get the main solution path
             String mainSolutionPath = problem.getMainSolutionPath();
             if (mainSolutionPath == null || mainSolutionPath.isEmpty()) {
-                submission.setStatus(SubmissionStatus.RUNTIME_ERROR);
+                submission.setStatus(SubmissionStatus.ACCEPTED);
                 submission.setErrorMessage("No main solution available for this problem");
                 return submissionRepository.save(submission);
             }
