@@ -185,6 +185,21 @@ export default function GeneralInfo() {
       </div>
 
       <div>
+        <label className="block font-medium">Difficulty Rating (800–4000)</label>
+        <input
+          type="number"
+          className="w-full border rounded px-2 py-1"
+          min={800}         // updated
+          max={4000}        // updated
+          value={problemData.difficultyRating || 800} // default to min
+          onChange={(e) =>
+            setProblemData({ ...problemData, difficultyRating: Number(e.target.value) })
+          }
+        />
+      </div>
+
+
+      <div>
         <label className="block font-medium">Tags</label>
         <TagsInput
           problemData={problemData}
