@@ -95,7 +95,7 @@ public class ProblemService {
         return exists;
     }
 
-    public boolean updateProblem(Long problemId, Long userId, String inputFileType, String outputFileType, int timeLimit, int memoryLimit, List<String> tags) {
+    public boolean updateProblem(Long problemId, Long userId, String inputFileType, String outputFileType, int timeLimit, int memoryLimit, Integer difficultyRating, List<String> tags) {
         Problem problem = problemRepo.findProblemById(problemId).orElse(null);
         if (problem == null || !authorHaveAccess(userId, problemId)) {
             return false;
@@ -104,6 +104,7 @@ public class ProblemService {
         problem.setOutputFileType(outputFileType);
         problem.setTimeLimit(timeLimit);
         problem.setMemoryLimit(memoryLimit);
+        problem.setDifficultyRating(difficultyRating);
         problem.setTags(tags);
         problemRepo.save(problem);
         return true;

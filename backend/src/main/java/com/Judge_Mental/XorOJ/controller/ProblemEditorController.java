@@ -41,7 +41,7 @@ public class ProblemEditorController {
    
 
 
-    public record GeneralInfoDTO(String inputFileType, String outputFileType, int timeLimit, int memoryLimit, Long contestId, List<String> tags) {}
+    public record GeneralInfoDTO(String inputFileType, String outputFileType, int timeLimit, int memoryLimit, Long contestId, Integer difficultyRating, List<String> tags) {}
 
     @PostMapping("/generalinfo")
     public ResponseEntity<Boolean> editProblem(
@@ -50,7 +50,7 @@ public class ProblemEditorController {
         @AuthenticationPrincipal(expression = "user") XUser user) {
 
         System.out.println("Editing general info for problem ID: " + problemId);
-        return problemService.updateProblem(problemId, user.getId(), generalInfo.inputFileType, generalInfo.outputFileType, generalInfo.timeLimit, generalInfo.memoryLimit, generalInfo.tags) ? ResponseEntity.ok(true) : ResponseEntity.status(403).body(false);
+        return problemService.updateProblem(problemId, user.getId(), generalInfo.inputFileType, generalInfo.outputFileType, generalInfo.timeLimit, generalInfo.memoryLimit, generalInfo.difficultyRating, generalInfo.tags) ? ResponseEntity.ok(true) : ResponseEntity.status(403).body(false);
     }
 
 

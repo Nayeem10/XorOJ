@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api/client";
 import CodeEditor from "./CodeEditor";
+import Button from "./Button";
 
 export default function IDE({
   endpointRun = "/api/submissions/test",
@@ -46,9 +47,11 @@ n = int(data[0])
   const [language, setLanguage] = useState(parentLanguage ?? defaultLanguage);
   const [code, setCode] = useState(parentCode ?? (initialCode ?? DEFAULT_SNIPPETS[defaultLanguage] ?? ""));
   const [stdinText, setStdinText] = useState(initialStdin);
-  const [loading, setLoading] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+  const [showExtras, setShowExtras] = useState(true);
 
   // Keep parent state in sync if provided
   useEffect(() => {
@@ -69,7 +72,7 @@ n = int(data[0])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
-  const canRun = useMemo(() => code.trim().length > 0 && !loading, [code, loading]);
+  const canRun = useMemo(() => code.trim().length > 0 && !isRunning && !isSubmitting, [code, isRunning, isSubmitting]);
 
   const normalizeResult = (d) => ({
     stdout: d?.stdout ?? d?.out ?? "",
@@ -80,7 +83,7 @@ n = int(data[0])
 
   const runCode = useCallback(async () => {
     if (!canRun) return;
-    setLoading(true);
+    setIsRunning(true);
     setError("");
     setResult(null);
     try {
@@ -97,15 +100,15 @@ n = int(data[0])
       setResult(normalized);
       onResult?.(normalized);
     } catch (e) {
-      setError(e?.message || "Run failed");
+      setError(e?.message || "Submit failed");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
-  }, [canRun, code, language, stdinText, endpointRun, onResult]);
+  }, [canRun, code, language, stdinText, endpointSubmit, onResult]);
 
   const submitCode = useCallback(async () => {
     if (!canRun) return;
-    setLoading(true);
+    setIsSubmitting(true);
     setError("");
     setResult(null);
     try {
@@ -126,7 +129,7 @@ n = int(data[0])
       setError(e?.message || "Submission failed");
       alert("Submission failed: " + (e?.message || "Unknown error"));
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   }, [canRun, code, language, stdinText, endpointSubmit, onResult]);
 
@@ -144,14 +147,14 @@ n = int(data[0])
   }, [runCode]);
 
   return (
-    <div className="w-full h-full flex flex-col p-3 sm:p-4 space-y-4">
+    <div className="w-full min-h-0 flex flex-col p-3 sm:p-4 space-y-4 max-h-screen overflow-hidden">
       {/* Language selector + Run button */}
       {showLanguageSelector && (
-        <div className="flex gap-3 align-left sm:justify-between">
+        <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3 sm:justify-between">
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="border rounded px-2 py-1 w-full xs:w-auto"
+            className="border rounded px-2 py-1 w-full sm:w-auto"
             aria-label="Language"
           >
             <option value="cpp">C++17</option>
@@ -159,94 +162,98 @@ n = int(data[0])
             <option value="python">Python 3</option>
           </select>
 
-          <div className="flex gap-2">
-            <button
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button
               onClick={runCode}
               disabled={!canRun}
-              className={`px-3 py-1 rounded w-full xs:w-auto ${canRun ? "bg-black text-white" : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                }`}
+              loading={isRunning}
+              className={`px-3 py-1 w-full sm:w-auto ${canRun ? "bg-black text-white" : ""}`}
               title="Run (Ctrl/Cmd + Enter)"
             >
-              {loading ? "Running…" : "Run"}
-            </button>
+              {isRunning ? "Running…" : "Run"}
+            </Button>
             {endpointSubmit && (
-              <button
+              <Button
                 onClick={submitCode}
                 disabled={!canRun}
-                className={`px-3 py-1 rounded w-full xs:w-auto ${canRun ? "bg-green-600 text-white hover:bg-green-700" : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                  }`}
+                loading={isSubmitting}
+                className={`px-3 py-1 w-full sm:w-auto ${canRun ? "bg-green-600 text-white hover:bg-green-700" : ""}`}
               >
-                {loading ? "Submitting…" : "Submit"}
-              </button>
+                {isSubmitting ? "Submitting…" : "Submit"}
+              </Button>
             )}
           </div>
         </div>
       )}
 
-      {/* Code editor */}
-      <section className="flex-1 flex flex-col gap-4">
-        <section className="space-y-2 flex flex-col">
-          <label className="text-sm font-medium">Code Editor</label>
-          <div className="flex-1 min-h-[35vh] md:min-h-[40vh] lg:min-h-[45vh]">
-            <CodeEditor
-              language={language}
-              value={code}
-              onChange={setCode}
-              height="100%"
-            />
-          </div>
-        </section>
-
-        {/* STDIN input */}
-        <section className="space-y-2">
-          <label className="text-sm font-medium">Program Input (STDIN)</label>
-          <textarea
-            value={stdinText}
-            onChange={(e) => setStdinText(e.target.value)}
-            className="w-full font-mono text-sm border rounded p-3 resize-y"
-            placeholder="Provide input for your program…"
-          />
-        </section>
-
-        {/* Results */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold">Output</h2>
-              <Metrics result={result} />
+      {/* Main content area - scrollable */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="space-y-4">
+          {/* Code editor */}
+          <section className="space-y-2">
+            <label className="text-sm font-medium">Code Editor</label>
+            <div className="h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] xl:h-[500px]">
+              <CodeEditor
+                language={language}
+                value={code}
+                onChange={setCode}
+                height="100%"
+              />
             </div>
-            <pre className="w-full border rounded p-3 overflow-auto whitespace-pre-wrap">
-              {result
-                ? result.stdout?.length > 0
-                  ? String(result.stdout)
-                  : <span className="text-gray-400">No output</span>
-                : <span className="text-gray-400">—</span>}
-            </pre>
-          </div>
+          </section>
 
-          <div className="space-y-2">
-            <h2 className="font-semibold flex items-center gap-2">
-              Errors
-              {result?.exitCode !== undefined && (
-                <span className="text-xs text-gray-500">(exit code: {result.exitCode})</span>
-              )}
-            </h2>
-            <pre
-              className={`w-full border rounded p-3 overflow-auto whitespace-pre-wrap ${result?.stderr?.length > 0 ? "bg-red-50 border-red-300 text-red-700" : ""
-                }`}
-            >
-              {result
-                ? result.stderr?.length > 0
-                  ? String(result.stderr)
-                  : <span className="text-gray-400">No errors</span>
-                : <span className="text-gray-400">—</span>}
-            </pre>
-          </div>
-        </section>
-      </section>
+          {/* STDIN input */}
+          <section className="space-y-2">
+            <label className="text-sm font-medium">Program Input (STDIN)</label>
+            <textarea
+              value={stdinText}
+              onChange={(e) => setStdinText(e.target.value)}
+              className="w-full h-24 sm:h-32 font-mono text-sm border rounded p-3 resize-none"
+              placeholder="Provide input for your program…"
+            />
+          </section>
 
+          {/* Results */}
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 pb-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h2 className="font-semibold">Output</h2>
+                <Metrics result={result} />
+              </div>
+              <pre className="w-full h-32 sm:h-40 border rounded p-3 overflow-auto whitespace-pre-wrap text-sm">
+                {result
+                  ? result.stdout?.length > 0
+                    ? String(result.stdout)
+                    : <span className="text-gray-400">No output</span>
+                  : <span className="text-gray-400">—</span>}
+              </pre>
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="font-semibold flex items-center gap-2">
+                Errors
+                {result?.exitCode !== undefined && (
+                  <span className="text-xs text-gray-500">(exit code: {result.exitCode})</span>
+                )}
+              </h2>
+              <pre
+                className={`w-full h-32 sm:h-40 border rounded p-3 overflow-auto whitespace-pre-wrap text-sm ${result?.stderr?.length > 0 ? "bg-red-50 border-red-300 text-red-700" : ""
+                  }`}
+              >
+                {result
+                  ? result.stderr?.length > 0
+                    ? String(result.stderr)
+                    : <span className="text-gray-400">No errors</span>
+                  : <span className="text-gray-400">—</span>}
+              </pre>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      {/* Error message - fixed at bottom when present */}
       {error && (
-        <div className="border border-red-300 bg-red-50 text-red-700 rounded p-3">
+        <div className="flex-shrink-0 border border-red-300 bg-red-50 text-red-700 rounded p-3">
           {error}
         </div>
       )}
