@@ -129,32 +129,49 @@ export default function MyProblems() {
       {/* Create Problem Modal */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg w-full max-w-sm">
-            <h2 className="text-lg font-semibold mb-4 themed-text">Create New Problem</h2>
-            {error && <p className="text-red-500 mb-2">{error}</p>}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">
+              Create New Problem
+            </h2>
+
+            {error && (
+              <p className="text-red-500 mb-3 text-sm">{error}</p>
+            )}
 
             <input
               type="text"
               placeholder="Problem Title"
-              className="w-full border rounded px-2 py-1 mb-4 bg-white dark:bg-slate-700 themed-text"
+              className="
+  w-full rounded-lg px-3 py-2 mb-4
+  border border-gray-400 dark:border-slate-600
+  bg-white dark:bg-slate-700
+  text-gray-800 dark:text-gray-100
+  focus:outline-none focus:ring-2 focus:ring-blue-500
+"
+
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
             />
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-3">
               <Button
-                className="bg-gray-400 hover:bg-gray-500"
+                className="bg-gray-300 hover:bg-gray-400 dark:bg-slate-600 dark:hover:bg-slate-500 text-gray-800 dark:text-gray-200"
                 onClick={closeModal}
               >
                 Cancel
               </Button>
-              <Button onClick={handleCreate} loading={creating}>
+              <Button
+                onClick={handleCreate}
+                loading={creating}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
                 Create
               </Button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }

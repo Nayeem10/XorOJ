@@ -87,6 +87,7 @@ export default function GeneralInfo() {
       const payload = {
         inputFileType: problemData.inputFileType || "",
         outputFileType: problemData.outputFileType || "",
+        difficultyRating: problemData.difficultyRating || 800,
         timeLimit: problemData.timeLimit || 1000,
         memoryLimit: problemData.memoryLimit || 256,
         contestId: problemData.contestId || "",
@@ -161,7 +162,7 @@ export default function GeneralInfo() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* <div className="flex items-center gap-2">
         <input
           type="checkbox"
           checked={problemData.interactive || false}
@@ -170,7 +171,7 @@ export default function GeneralInfo() {
           }
         />
         <label>Interactive Problem</label>
-      </div>
+      </div> */}
 
       <div>
         <label className="block font-medium">Contest</label>

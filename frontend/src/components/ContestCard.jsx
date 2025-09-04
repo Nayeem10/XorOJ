@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { apiFetch } from "../api/client";
-
 import CountdownTimer from "./CountdownTimer.jsx";
 
 export default function ContestCard({ contest }) {
@@ -16,14 +15,13 @@ export default function ContestCard({ contest }) {
   const hasStarted = nowMs >= startMs;
   const hasEnded   = nowMs >= endMs;
 
-  // Wake up exactly when we need to flip UI (start or end), not every second
+  // Wake up exactly when we need to flip UI (start or end)
   useEffect(() => {
-    // choose the next boundary ahead of "now"
     const nextBoundary = !hasStarted ? startMs : !hasEnded ? endMs : null;
-    if (nextBoundary === null) return; // nothing else to do
+    if (nextBoundary === null) return;
 
-    const delay = Math.max(0, nextBoundary - Date.now()) + 20; // tiny buffer
-    const id = setTimeout(() => setTick(t => t + 1), delay);
+    const delay = Math.max(0, nextBoundary - Date.now()) + 20;
+    const id = setTimeout(() => setTick((t) => t + 1), delay);
     return () => clearTimeout(id);
   }, [startMs, endMs, hasStarted, hasEnded]);
 
@@ -49,7 +47,13 @@ export default function ContestCard({ contest }) {
       <div>
         <strong>Start:</strong> {new Date(startMs).toLocaleString()} <br />
         <strong>End:</strong> {new Date(endMs).toLocaleString()} <br />
-        <CountdownTimer startTime={hasEnded ? new Date(endMs) : new Date(startMs)} />
+        {hasEnded ? (
+          <span className="text-red-600 font-semibold">Contest Ended</span>
+        ) : (
+          <CountdownTimer
+            startTime={hasStarted ? new Date(endMs) : new Date(startMs)}
+          />
+        )}
       </div>
 
       <div className="flex gap-2 flex-wrap mt-2">
@@ -58,12 +62,19 @@ export default function ContestCard({ contest }) {
             Register
           </button>
         )}
+
+        {/* Standings visible once contest starts, stays even after end */}
         {hasStarted && (
-          <Link to={`/contests/${contest.id}/standings`} className="btn btn-outline btn-sm">
+          <Link
+            to={`/contests/${contest.id}/standings`}
+            className="btn btn-outline btn-sm"
+          >
             Standings
           </Link>
         )}
-        {isRegistered && hasStarted && (
+
+        {/* Enter button only during contest */}
+        {isRegistered && hasStarted && !hasEnded && (
           <Link to={`/contests/${contest.id}/view`} className="btn btn-primary btn-sm">
             Enter
           </Link>
