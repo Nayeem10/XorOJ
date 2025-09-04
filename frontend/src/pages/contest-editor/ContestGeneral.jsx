@@ -14,7 +14,6 @@ export default function ContestGeneral() {
         description: contestData.description || "",
         startTime: contestData.startTime,
         endTime: contestData.endTime,
-        status: contestData.status || "UPCOMING",
       };
 
       const res = await apiFetch(
@@ -84,7 +83,7 @@ export default function ContestGeneral() {
         </div>
       </div>
 
-      <div>
+      {/* <div>
         <label className="block font-medium">Status</label>
         <select
           className="w-full border rounded px-2 py-1"
@@ -97,7 +96,7 @@ export default function ContestGeneral() {
           <option value="RUNNING">RUNNING</option>
           <option value="ENDED">ENDED</option>
         </select>
-      </div>
+      </div> */}
 
       <Button onClick={handleSave}>Save</Button>
     </div>

@@ -6,7 +6,6 @@ const tabs = [
   { name: "General Info", path: "general" },
   { name: "Problems", path: "problems" },
   { name: "Participants", path: "participants" },
-  { name: "Settings", path: "settings" },
 ];
 
 export default function ContestEditor() {

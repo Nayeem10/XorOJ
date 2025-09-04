@@ -44,7 +44,6 @@ import ContestEditor from "./pages/ContestEditor.jsx";
 import ContestGeneral from "./pages/contest-editor/ContestGeneral.jsx";
 import ContestProblems from "./pages/contest-editor/ContestProblems.jsx";
 import ContestParticipants from "./pages/contest-editor/ContestParticipants.jsx";
-import ContestSettings from "./pages/contest-editor/ContestSettings.jsx";
 
 // IDE Page
 import IDE from "./components/IDE.jsx";
@@ -105,7 +104,6 @@ const router = createBrowserRouter([
           { path: 'general', element: <ContestGeneral /> },
           { path: 'problems', element: <ContestProblems /> },
           { path: 'participants', element: <ContestParticipants /> },
-          { path: 'settings', element: <ContestSettings /> },
         ],
       },
 
