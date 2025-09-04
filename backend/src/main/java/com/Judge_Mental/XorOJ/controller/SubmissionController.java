@@ -53,16 +53,24 @@ public class SubmissionController {
            .collect(Collectors.toList());
     }
 
-    // @PostMapping("contests/{contestId}/problems/{problemId}/submit")
-    // public SubmissionResponseDTO submitSolution(
-    //     @PathVariable Long contestId,
-    //     @PathVariable Long problemId,
-    //     @AuthenticationPrincipal(expression = "user") XUser user,
-    //     @RequestBody Submission submission) {
+    public record submissionDTO(String code, String language, String stdin) {}
+    @PostMapping("contests/{contestId}/problems/{problemId}/submit")
+    public SubmissionResponseDTO submitSolution(
+        @PathVariable Long contestId,
+        @PathVariable Long problemId,
+        @AuthenticationPrincipal(expression = "user") XUser user,
+        @RequestBody submissionDTO submission) throws IOException {
 
-    //     Submission savedSubmission = submissionService.submitSolution(user.getId(), contestId, problemId, submission);
-    //     return SubmissionResponseDTO.fromSubmission(savedSubmission);
-    // }
+        Submission savedSubmission = submissionService.createSubmissionFromString(
+            submission.code(),
+            problemId,
+            contestId,
+            user.getId(),
+            submission.language()
+        );
+        
+        return SubmissionResponseDTO.fromSubmission(savedSubmission);
+    }
 
     public record runRequest(String code, String language, String stdin) {}
     @PostMapping("/test")
@@ -70,6 +78,26 @@ public class SubmissionController {
         @RequestBody runRequest request) throws IOException, InterruptedException {
         return judgingService.runCodeWithTest(request.code(), request.stdin());
     }
+    
+    public record SubmissionRequest(String code, String language, Long problemId, Long contestId) {}
+    
+    // @PostMapping("/submit")
+    // public SubmissionResponseDTO submitSolutionToFile(
+    //     @RequestBody SubmissionRequest request,
+    //     @AuthenticationPrincipal(expression = "user") XUser user) throws IOException {
+        
+    //     // Create submission using service method
+    //     Submission savedSubmission = submissionService.createSubmissionFromString(
+    //         request.code(), 
+    //         request.problemId(), 
+    //         request.contestId(), 
+    //         user.getId(), 
+    //         Submission.ProgrammingLanguage.valueOf(request.language().toUpperCase())
+    //     );
+        
+    //     // Convert to response DTO
+    //     return SubmissionResponseDTO.fromSubmission(savedSubmission);
+    // }
 
     @PostMapping(value = "/testfile", consumes = "multipart/form-data")
     public RunResult submitSolution(

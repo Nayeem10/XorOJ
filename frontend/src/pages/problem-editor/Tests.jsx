@@ -2,252 +2,204 @@
 import React, { useState, useEffect } from "react";
 import Button from "../../components/Button.jsx";
 import { useOutletContext } from "react-router-dom";
+import { apiFetch } from "../../api/client.js";
 
 export default function Tests() {
   const { problemData, setProblemData } = useOutletContext();
-  const [tests, setTests] = useState(problemData?.tests || []);
-
-  const [showManualForm, setShowManualForm] = useState(false);
-  const [showGeneratedForm, setShowGeneratedForm] = useState(false);
-
-  const [manualId, setManualId] = useState("");
-  const [manualInput, setManualInput] = useState("");
-  const [manualOutput, setManualOutput] = useState("");
-
-  const [generatedId, setGeneratedId] = useState("");
-  const [selectedGenerator, setSelectedGenerator] = useState("");
-  const [command, setCommand] = useState("");
+  const [tests, setTests] = useState(problemData?.testFiles || []);
+  const [showModal, setShowModal] = useState(false);
+  const [newTest, setNewTest] = useState({ id: "", file: null });
+  const [loading, setLoading] = useState(false);
 
   const problemId = problemData.id;
 
   useEffect(() => {
-    if (problemData?.tests) setTests(problemData.tests);
+    if (problemData?.testFiles) setTests(problemData.testFiles);
   }, [problemData]);
 
-  // Save or update a test
-  const saveTest = async (newTest) => {
-    if (!newTest.id.trim()) {
-      alert("Test ID cannot be empty");
+  // File upload handler
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith(".txt")) {
+      alert("Please upload .txt file only!");
+      e.target.value = null;
       return;
     }
 
+    setNewTest((prev) => ({ ...prev, file }));
+  };
+
+  // Create test file
+  const createTestFile = async () => {
+    if (!newTest.id.trim() || !newTest.file) {
+      alert("Please provide both an ID and a .txt file!");
+      return;
+    }
+
+    if (tests.some((t) => t.id === parseInt(newTest.id))) {
+      alert("This ID already exists. Please choose another one.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("id", newTest.id);
+    formData.append("file", newTest.file);
+
     try {
-      const res = await apiFetch(`/api/edit/problems/${problemId}/tests`, {
+      setLoading(true);
+      const res = await apiFetch(`/api/edit/problems/${problemId}/testfile`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTest),
+        body: formData,
+        headers: {}, // Let browser set content type
       });
 
-      if (!res) throw new Error("Failed to save test");
+      if (!res) {
+        throw new Error("Failed to create test file");
+      }
 
-      const savedTest = await res;
+      // Construct test object ourselves
+      const testObj = {
+        id: parseInt(newTest.id),
+        fileName: newTest.file.name,
+      };
 
-      // Update tests array: replace if ID exists, otherwise append
-      const updatedTests = tests.filter((t) => t.id !== savedTest.id);
-      updatedTests.push(savedTest);
+      // Update context state
+      setProblemData((prev) => ({
+        ...prev,
+        testFiles: [...(prev.testFiles || []), testObj],
+      }));
 
-      setTests(updatedTests);
-      setProblemData((prev) => ({ ...prev, tests: updatedTests }));
-
-      // reset form fields
-      setManualId("");
-      setManualInput("");
-      setManualOutput("");
-      setGeneratedId("");
-      setSelectedGenerator("");
-      setCommand("");
-      setShowManualForm(false);
-      setShowGeneratedForm(false);
+      setShowModal(false);
+      setNewTest({ id: "", file: null });
+      setTests((prev) => [...prev, testObj]);
     } catch (err) {
-      // console.error(err);
-      alert("Failed to save test");
+      alert("Failed to create test file");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const removeTest = async (id) => {
+  // Delete test file
+  const deleteTestFile = async (id) => {
     try {
-      const res = await apiFetch(`/api/edit/problems/${problemId}/tests/${id}`, {
+      const res = await apiFetch(`/api/edit/problems/${problemId}/testfile/${id}`, {
         method: "DELETE",
       });
 
-      if (!res) throw new Error("Failed to delete test");
+      if (!res) throw new Error("Failed to delete test file");
 
       const updatedTests = tests.filter((t) => t.id !== id);
       setTests(updatedTests);
-      setProblemData((prev) => ({ ...prev, tests: updatedTests }));
+      setProblemData((prev) => ({ ...prev, testFiles: updatedTests }));
     } catch (err) {
-      // console.error(err);
-      alert("Failed to delete test");
+      alert("Failed to delete test file");
     }
+  };
+
+  // View test file
+  const viewTestFile = (id) => {
+    const url = `/api/edit/problems/${problemId}/testfile/${id}/view`;
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
     <div className="p-6 max-w-4xl">
       <h1 className="text-2xl font-bold mb-6">Tests</h1>
 
-      <div className="flex gap-4 mb-6">
+      <div className="mb-4">
         <Button
-          onClick={() => {
-            setShowManualForm(!showManualForm);
-            setShowGeneratedForm(false);
-          }}
+          onClick={() => setShowModal(true)}
           className="bg-blue-600 hover:bg-blue-700"
         >
-          + Add Manual Test
-        </Button>
-        <Button
-          onClick={() => {
-            setShowGeneratedForm(!showGeneratedForm);
-            setShowManualForm(false);
-          }}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          + Add Generated Test
+          + Add Test File
         </Button>
       </div>
 
-      {/* Manual Test Form */}
-      {showManualForm && (
-        <div className="p-4 mb-6 border rounded-md bg-gray-50">
-          <h2 className="font-semibold mb-3">New Manual Test</h2>
-          <input
-            placeholder="Test ID"
-            value={manualId}
-            onChange={(e) => setManualId(e.target.value)}
-            className="w-full mb-3 p-2 border rounded"
-          />
-          <textarea
-            placeholder="Input"
-            value={manualInput}
-            onChange={(e) => setManualInput(e.target.value)}
-            className="w-full mb-3 p-2 border rounded"
-            rows={3}
-          />
-          <textarea
-            placeholder="Output"
-            value={manualOutput}
-            onChange={(e) => setManualOutput(e.target.value)}
-            className="w-full mb-3 p-2 border rounded"
-            rows={3}
-          />
-          <Button
-            onClick={() =>
-              saveTest({
-                id: manualId,
-                type: "manual",
-                input: manualInput,
-                output: manualOutput,
-              })
-            }
-            className="bg-indigo-600 hover:bg-indigo-700"
-          >
-            Save
-          </Button>
-        </div>
-      )}
-
-      {/* Generated Test Form */}
-      {showGeneratedForm && (
-        <div className="p-4 mb-6 border rounded-md bg-gray-50">
-          <h2 className="font-semibold mb-3">New Generated Test</h2>
-          <input
-            placeholder="Test ID"
-            value={generatedId}
-            onChange={(e) => setGeneratedId(e.target.value)}
-            className="w-full mb-3 p-2 border rounded"
-          />
-          <select
-            value={selectedGenerator}
-            onChange={(e) => setSelectedGenerator(e.target.value)}
-            className="w-full mb-3 p-2 border rounded"
-          >
-            <option value="">Select Generator File</option>
-            {problemData.generators?.map((gen) => (
-              <option key={gen} value={gen}>
-                {gen}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            placeholder="Command"
-            value={command}
-            onChange={(e) => setCommand(e.target.value)}
-            className="w-full mb-3 p-2 border rounded"
-          />
-          <Button
-            onClick={() =>
-              saveTest({
-                id: generatedId,
-                type: "generated",
-                generator: selectedGenerator,
-                command,
-              })
-            }
-            className="bg-indigo-600 hover:bg-indigo-700"
-          >
-            Save
-          </Button>
-        </div>
-      )}
-
       {/* Tests Table */}
-      <h2 className="text-lg font-semibold mb-3">All Tests</h2>
-      <table className="w-full border text-left">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="p-2 border">ID</th>
-            <th className="p-2 border">Type</th>
-            <th className="p-2 border">Content</th>
-            <th className="p-2 border">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tests.length === 0 ? (
-            <tr>
-              <td colSpan="4" className="p-4 text-center text-gray-500">
-                No tests yet
-              </td>
+      {tests.length > 0 ? (
+        <table className="w-full border-collapse border">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border p-2">ID</th>
+              <th className="border p-2">File</th>
+              <th className="border p-2">Actions</th>
             </tr>
-          ) : (
-            tests.map((t) => (
+          </thead>
+          <tbody>
+            {tests.map((t) => (
               <tr key={t.id}>
-                <td className="p-2 border">{t.id}</td>
-                <td className="p-2 border">{t.type}</td>
-                <td className="p-2 border">
-                  {t.type === "manual" ? (
-                    <>
-                      <div>
-                        <strong>Input:</strong> {t.input}
-                      </div>
-                      <div>
-                        <strong>Output:</strong> {t.output}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <strong>Generator:</strong> {t.generator}
-                      </div>
-                      <div>
-                        <strong>Command:</strong> {t.command}
-                      </div>
-                    </>
-                  )}
-                </td>
-                <td className="p-2 border">
+                <td className="border p-2 text-center">{t.id}</td>
+                <td className="border p-2">{t.fileName}</td>
+                <td className="border p-2 text-center space-x-2">
                   <Button
-                    onClick={() => removeTest(t.id)}
-                    className="bg-red-600 hover:bg-red-700"
+                    onClick={() => viewTestFile(t.id)}
+                    className="bg-green-600 hover:bg-green-700 px-2 py-1 text-sm"
                   >
-                    Remove
+                    View
+                  </Button>
+                  <Button
+                    onClick={() => deleteTestFile(t.id)}
+                    className="bg-red-600 hover:bg-red-700 px-2 py-1 text-sm"
+                  >
+                    Delete
                   </Button>
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="text-gray-500">No test files added yet.</p>
+      )}
+
+      {/* Modal for Add Test File */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 className="text-lg font-bold mb-4">Add Test File</h3>
+
+            <label className="block mb-2">Test ID (number)</label>
+            <input
+              type="number"
+              min="1"
+              className="w-full border rounded px-2 py-1 mb-3"
+              value={newTest.id}
+              onChange={(e) =>
+                setNewTest({
+                  ...newTest,
+                  id: e.target.value.replace(/\D/g, ""), // only digits
+                })
+              }
+            />
+
+            <label className="block mb-2">Upload File (.txt)</label>
+            <input
+              type="file"
+              accept=".txt"
+              className="w-full mb-3"
+              onChange={handleFileUpload}
+            />
+
+            <div className="flex justify-end gap-2">
+              <Button
+                onClick={() => setShowModal(false)}
+                className="bg-gray-400 hover:bg-gray-500"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={createTestFile}
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={loading}
+              >
+                {loading ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

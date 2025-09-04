@@ -18,10 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.Judge_Mental.XorOJ.dto.GeneratorFileDTO;
+import com.Judge_Mental.XorOJ.dto.TestFileDTO;
 import com.Judge_Mental.XorOJ.entity.GeneratorFile;
+import com.Judge_Mental.XorOJ.entity.TestFile;
 import com.Judge_Mental.XorOJ.entity.XUser;
 import com.Judge_Mental.XorOJ.service.GeneratorService;
 import com.Judge_Mental.XorOJ.service.ProblemService;
+import com.Judge_Mental.XorOJ.service.TestFileService;
 
 @RestController
 @RequestMapping("api/edit")
@@ -32,6 +35,9 @@ public class ProblemEditorController {
 
     @Autowired
     private GeneratorService generatorService;
+    
+    @Autowired
+    private TestFileService testFileService;
    
 
 
@@ -109,6 +115,54 @@ public class ProblemEditorController {
         System.out.println("Deleting generator file: " + generatorId);
 
         boolean success = generatorService.deleteGeneratorFile(problemId, user.getId(), generatorId);
+        return success ? ResponseEntity.ok(true) : ResponseEntity.badRequest().body(false);
+    }
+    
+    // Test file endpoints
+    @GetMapping("/problems/{problemId}/testfile")
+    public ResponseEntity<List<TestFileDTO>> getTestFiles(
+            @PathVariable Long problemId,
+            @AuthenticationPrincipal(expression = "user") XUser user) {
+        
+        if (!problemService.authorHaveAccess(user.getId(), problemId)) {
+            return ResponseEntity.status(403).body(null);
+        }
+        
+        List<TestFile> testFiles = testFileService.getTestFiles(problemId);
+        List<TestFileDTO> dtoList = testFiles.stream()
+                .map(tf -> new TestFileDTO(tf.getTestId(), tf.getFileName()))
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(dtoList);
+    }
+
+    @PostMapping("/problems/{problemId}/testfile")
+    public ResponseEntity<Boolean> createTestFile(
+            @PathVariable Long problemId,
+            @RequestParam("id") int testId,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal(expression = "user") XUser user) {
+        
+        try {
+            TestFile testFile = testFileService.createTestFile(problemId, user.getId(), testId, file);
+            TestFileDTO dto = new TestFileDTO(testFile.getTestId(), testFile.getFileName());
+            return ResponseEntity.ok(dto != null);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body(null);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @DeleteMapping("/problems/{problemId}/testfile/{testId}")
+    public ResponseEntity<Boolean> deleteTestFile(
+            @PathVariable Long problemId,
+            @PathVariable int testId,
+            @AuthenticationPrincipal(expression = "user") XUser user) {
+
+        System.out.println("Deleting test file: " + testId);
+
+        boolean success = testFileService.deleteTestFile(problemId, user.getId(), testId);
         return success ? ResponseEntity.ok(true) : ResponseEntity.badRequest().body(false);
     }
 }

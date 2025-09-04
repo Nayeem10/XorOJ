@@ -21,13 +21,12 @@ public class Submission {
     Long contestId; // ID of the contest (if any)
 
     Long problemId; // ID of the problem being submitted
-
-    @Lob
-    @Column(nullable = false, length = 50000)
-    private String code;
+    
+    @Column(length = 255)
+    private String filePath; // Path to the saved submission file
 
     @Column(nullable = false)
-    private ProgrammingLanguage language; // e.g., "cpp", "java", "python"
+    private String language; // e.g., "cpp", "java", "python"
 
     @Column(nullable = false)
     private LocalDateTime submissionTime;
@@ -58,11 +57,6 @@ public class Submission {
         MEMORY_LIMIT_EXCEEDED,
         COMPILATION_ERROR,
         RUNTIME_ERROR
-    }
-    public enum ProgrammingLanguage {
-        CPP,
-        JAVA,
-        PYTHON
     }
 
 }

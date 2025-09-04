@@ -21,7 +21,11 @@ spring:
       max-request-size: 15MB
       
 file:
-  upload-dir: ./uploads
+  upload-dir: ../uploads
+
+submission:
+  storage:
+    path: ../submissions
   thread:
     virtual:
       enabled: true

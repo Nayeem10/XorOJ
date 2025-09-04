@@ -58,4 +58,20 @@ public class FileStorageService {
             return false;
         }
     }
+    
+    public String storeStringToFile(String content, String directory, String fileName) throws IOException {
+        Path uploadPath = Paths.get(uploadDir, directory).toAbsolutePath().normalize();
+        
+        // Create directories if they don't exist
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        
+        // Resolve the file path
+        Path targetLocation = uploadPath.resolve(fileName);
+        
+        Files.writeString(targetLocation, content);
+        
+        return targetLocation.toString();
+    }
 }
