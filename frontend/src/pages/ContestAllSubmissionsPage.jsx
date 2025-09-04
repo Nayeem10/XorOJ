@@ -64,7 +64,7 @@ export default function ContestAllSubmissionsPage() {
                         to={`/users/${s.userId}`} // Assuming you have a user page for user details
                         className="text-indigo-600"
                       >
-                        User {s.userId}
+                        {s.userId}
                       </Link>
                     </td>
                     <td className="py-2 px-3">
