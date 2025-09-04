@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useParams, useLocation } from "react-router-dom";
+import { apiFetch } from "../api/client.js";
 
 const tabs = [
   { name: "General Info", path: "general" },
@@ -9,21 +10,40 @@ const tabs = [
   { name: "Checker", path: "checker" },
   { name: "Tests", path: "tests" },
   { name: "Solution Files", path: "solutions" },
-  { name: "Invocations", path: "invocations" },
-  { name: "Manage Access", path: "access" },
+  // { name: "Invocations", path: "invocations" },
+  // { name: "Manage Access", path: "access" },
 ];
 
 export default function ProblemEditor() {
   const { problemId } = useParams();
   const location = useLocation();
 
-  // Get the initial problem data from router state (passed from MyProblems)
+  // If navigated from MyProblems, we may already have problemData
   const initialData = location.state?.problemData || null;
 
-  // Shared problem state
   const [problemData, setProblemData] = useState(initialData);
+  const [loading, setLoading] = useState(!initialData);
 
-  if (!problemData) {
+  // Fetch problemData if not already present (e.g. after reload)
+  useEffect(() => {
+    const fetchProblem = async () => {
+      try {
+        const res = await apiFetch(`/api/problems/${problemId}`);
+        if (!res) throw new Error("Failed to fetch problem data");
+        setProblemData(res);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!initialData) {
+      fetchProblem();
+    }
+  }, [problemId]);
+
+  if (loading || !problemData) {
     return <p className="p-6">Loading problem data...</p>;
   }
 

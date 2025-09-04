@@ -35,7 +35,7 @@ export default function Generator() {
       return;
     }
 
-    if (generators.some((g) => g.id === newGenerator.id)) {
+    if (generators.some((g) => g.generatorId === Number(newGenerator.id))) {
       alert("This ID already exists. Please choose another one.");
       return;
     }
@@ -56,10 +56,15 @@ export default function Generator() {
         throw new Error("Failed to create generator");
       }
 
-      // Construct generator object ourselves
+      // Construct generator object in backend-like format
       const generatorObj = {
-        id: newGenerator.id,
+        id: {
+          problemId: problemId,
+          generatorId: Number(newGenerator.id),
+        },
         fileName: newGenerator.file.name,
+        filePath: null, // backend can return actual path if needed
+        generatorId: Number(newGenerator.id),
       };
 
       // Update context state
@@ -78,11 +83,14 @@ export default function Generator() {
   };
 
   // Delete generator
-  const deleteGenerator = async (id) => {
+  const deleteGenerator = async (generatorId) => {
     try {
-      const res = await apiFetch(`/api/edit/problems/${problemId}/generator/${id}`, {
-        method: "DELETE",
-      });
+      const res = await apiFetch(
+        `/api/edit/problems/${problemId}/generator/${generatorId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!res || res.success === false) {
         throw new Error("Failed to delete generator");
@@ -90,7 +98,9 @@ export default function Generator() {
 
       setProblemData((prev) => ({
         ...prev,
-        generatorFiles: (prev.generatorFiles || []).filter((g) => g.id !== id),
+        generatorFiles: (prev.generatorFiles || []).filter(
+          (g) => g.generatorId !== generatorId
+        ),
       }));
     } catch (err) {
       alert("Failed to delete generator");
@@ -98,8 +108,8 @@ export default function Generator() {
   };
 
   // View generator file
-  const viewGenerator = (id) => {
-    const url = `/api/edit/problems/${problemId}/generator/${id}/view`;
+  const viewGenerator = (generatorId) => {
+    const url = `/api/edit/problems/${problemId}/generator/${generatorId}/view`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -129,18 +139,18 @@ export default function Generator() {
           </thead>
           <tbody>
             {generators.map((g) => (
-              <tr key={g.id}>
-                <td className="border p-2 text-center">{g.id}</td>
+              <tr key={g.generatorId}>
+                <td className="border p-2 text-center">{g.generatorId}</td>
                 <td className="border p-2">{g.fileName}</td>
                 <td className="border p-2 text-center space-x-2">
                   <Button
-                    onClick={() => viewGenerator(g.id)}
+                    onClick={() => viewGenerator(g.generatorId)}
                     className="bg-green-600 hover:bg-green-700 px-2 py-1 text-sm"
                   >
                     View
                   </Button>
                   <Button
-                    onClick={() => deleteGenerator(g.id)}
+                    onClick={() => deleteGenerator(g.generatorId)}
                     className="bg-red-600 hover:bg-red-700 px-2 py-1 text-sm"
                   >
                     Delete

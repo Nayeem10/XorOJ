@@ -84,8 +84,8 @@ const router = createBrowserRouter([
           { path: 'checker', element: <Checker /> },
           { path: 'tests', element: <Tests /> },
           { path: 'solutions', element: <SolutionFiles /> },
-          { path: 'invocations', element: <Invocations /> },
-          { path: 'access', element: <ManageAccess /> },
+          // { path: 'invocations', element: <Invocations /> },
+          // { path: 'access', element: <ManageAccess /> },
         ],
       },
 
