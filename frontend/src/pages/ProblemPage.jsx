@@ -74,7 +74,7 @@ export default function ProblemPage() {
           <Panel defaultSize={55} minSize={30} className="h-full overflow-auto p-3 space-y-4">
             <Card className="text-center bg-gray-50 p-4 rounded-lg shadow">
               <h1 className="text-2xl font-bold">{problem.title}</h1>
-              <div className="flex justify-center gap-6 mt-2 text-sm text-gray-700">
+              <div className="flex justify-center gap-6 mt-2 text-sm text-gray-700 themed-text">
                 <span>Time Limit: {problem.timeLimit} ms</span>
                 <span>Memory Limit: {problem.memoryLimit / 1000} MB</span>
               </div>
@@ -117,7 +117,7 @@ export default function ProblemPage() {
           <Panel defaultSize={50} minSize={25} className="overflow-auto p-4 space-y-4">
             <Card className="text-center bg-gray-50 p-4 rounded-lg shadow">
               <h1 className="text-3xl font-bold">{problem.title}</h1>
-              <div className="flex justify-center gap-6 mt-2 text-sm text-gray-700">
+              <div className="flex justify-center gap-6 mt-2 text-sm text-gray-700 themed-text">
                 <span>Time Limit: {problem.timeLimit} ms</span>
                 <span>Memory Limit: {problem.memoryLimit / 1000} MB</span>
               </div>

@@ -1,5 +1,5 @@
 // src/pages/ProblemSet.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../api/client";
 
@@ -8,15 +8,42 @@ export default function ProblemSet() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // sidebar filters (client-side for now)
+  // filters
   const [minRating, setMinRating] = useState("");
   const [maxRating, setMaxRating] = useState("");
   const [tagQuery, setTagQuery] = useState("");
   const [applied, setApplied] = useState({ min: "", max: "", tag: "" });
 
-  // mobile sidebar state
+  // mobile sidebar
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  // upcoming contest
+  const [nextContest, setNextContest] = useState(null);
+  const [countdown, setCountdown] = useState(null);
+  const timerRef = useRef(null);
+
+  // ---------- helpers ----------
+  const msToParts = (ms) => {
+    if (ms <= 0) return null;
+    const totalSec = Math.floor(ms / 1000);
+    const days = Math.floor(totalSec / 86400);
+    const hours = Math.floor((totalSec % 86400) / 3600);
+    const minutes = Math.floor((totalSec % 3600) / 60);
+    const seconds = totalSec % 60;
+    return { days, hours, minutes, seconds };
+  };
+
+  const formatParts = (p) => {
+    if (!p) return "Starting soon";
+    const chunks = [];
+    if (p.days) chunks.push(`${p.days}d`);
+    if (p.hours || p.days) chunks.push(`${p.hours}h`);
+    if (p.minutes || p.hours || p.days) chunks.push(`${p.minutes}m`);
+    chunks.push(`${p.seconds}s`);
+    return chunks.join(" ");
+  };
+
+  // ---------- load problems ----------
   useEffect(() => {
     apiFetch("/api/problems")
       .then((data) => {
@@ -30,6 +57,63 @@ export default function ProblemSet() {
       .finally(() => setLoading(false));
   }, []);
 
+  // ---------- load contests & choose next upcoming ----------
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadContests() {
+      try {
+        const contests = await apiFetch("/api/contests");
+        const now = Date.now();
+
+        // normalize and filter future
+        const future = (Array.isArray(contests) ? contests : [])
+          .map((c) => ({
+            ...c,
+            startMs: Number(new Date(c.startTime)),
+          }))
+          .filter((c) => Number.isFinite(c.startMs) && c.startMs > now)
+          .sort((a, b) => a.startMs - b.startMs);
+
+        if (!cancelled) {
+          setNextContest(future.length ? future[0] : null);
+        }
+      } catch (e) {
+        console.warn("Could not load upcoming contests", e);
+        if (!cancelled) setNextContest(null);
+      }
+    }
+
+    loadContests();
+    return () => { cancelled = true; };
+  }, []);
+
+  // ---------- live countdown ----------
+  useEffect(() => {
+    if (!nextContest) {
+      setCountdown(null);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      return;
+    }
+
+    const update = () => {
+      const diff = new Date(nextContest.startTime).getTime() - Date.now();
+      setCountdown(msToParts(diff));
+      if (diff <= 0 && timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+
+    update();
+    timerRef.current = setInterval(update, 1000);
+    return () => timerRef.current && clearInterval(timerRef.current);
+  }, [nextContest]);
+
+  // ---------- filtering ----------
   const filtered = useMemo(() => {
     const min = applied.min === "" ? -Infinity : Number(applied.min);
     const max = applied.max === "" ? Infinity : Number(applied.max);
@@ -59,10 +143,9 @@ export default function ProblemSet() {
 
   return (
     <div className="max-w-7xl mx-auto mt-6 px-4">
-      {/* Top bar: title + mobile filters button */}
+      {/* Title + mobile filter button */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-center">Problem Set</h1>
-        {/* hamburger for small screens -> opens filters */}
         <button
           className="lg:hidden p-2 rounded-md border"
           style={{ borderColor: "var(--colour-5)" }}
@@ -79,15 +162,12 @@ export default function ProblemSet() {
             strokeLinejoin="round"
             aria-hidden="true"
           >
-            {/* sliders-horizontal icon */}
             <line x1="21" y1="4" x2="14" y2="4" />
             <line x1="10" y1="4" x2="3" y2="4" />
             <circle cx="12" cy="4" r="2" />
-
             <line x1="21" y1="12" x2="12" y2="12" />
             <line x1="8" y1="12" x2="3" y2="12" />
             <circle cx="8" cy="12" r="2" />
-
             <line x1="21" y1="20" x2="16" y2="20" />
             <line x1="12" y1="20" x2="3" y2="20" />
             <circle cx="16" cy="20" r="2" />
@@ -95,7 +175,7 @@ export default function ProblemSet() {
         </button>
       </div>
 
-      {/* Responsive layout: table + sidebar on lg; table only on small */}
+      {/* Table + sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_20rem] gap-6">
         {/* TABLE */}
         <div>
@@ -104,14 +184,12 @@ export default function ProblemSet() {
           ) : (
             <div className="table-card">
               <table className="w-full table-fixed">
-                {/* Make narrow columns fixed so the Title column gets the rest */}
                 <colgroup>
-                  <col style={{ width: "3.5rem" }} /> {/* # */}
-                  <col /> {/* Title (flex) */}
-                  <col style={{ width: "5.5rem" }} /> {/* Difficulty */}
-                  <col style={{ width: "5rem" }} /> {/* Solved */}
+                  <col style={{ width: "3.5rem" }} />
+                  <col />
+                  <col style={{ width: "5.5rem" }} />
+                  <col style={{ width: "5rem" }} />
                 </colgroup>
-
                 <thead>
                   <tr>
                     <th>#</th>
@@ -133,7 +211,6 @@ export default function ProblemSet() {
                             >
                               {p.title}
                             </Link>
-                            {/* tags hidden on small; show from md+ */}
                             {Array.isArray(p.tags) &&
                               p.tags.map((t, i) => (
                                 <span
@@ -146,7 +223,9 @@ export default function ProblemSet() {
                           </div>
                         </td>
                         <td className="text-center">
-                          <span className="badge-soft">{p.difficultyRating ?? "—"}</span>
+                          <span className="badge-soft">
+                            {p.difficultyRating ?? "—"}
+                          </span>
                         </td>
                         <td className="text-center">
                           <span className="badge-soft">{p.solveCount ?? 0}</span>
@@ -166,12 +245,19 @@ export default function ProblemSet() {
           )}
         </div>
 
-        {/* SIDEBAR (visible on lg+) */}
+        {/* SIDEBAR */}
         <aside className="hidden lg:block space-y-4">
           <div className="panel">
             <h3 className="font-semibold text-center mb-3">Stay Updated</h3>
             <div className="text-sm text-center">
-              <div className="font-medium mb-1">Before contest</div>
+              <div className="font-medium mb-1">
+                {nextContest ? "Before contest" : "No upcoming contest"}
+              </div>
+              {nextContest && (
+                <div className="mb-2 opacity-80 themed-text">
+                  {formatParts(countdown)}
+                </div>
+              )}
               <Link to="/contests" className="text-indigo-600 hover:underline">
                 View upcoming contests
               </Link>
@@ -221,7 +307,7 @@ export default function ProblemSet() {
         </aside>
       </div>
 
-      {/* MOBILE FILTERS SHEET */}
+      {/* MOBILE SHEET */}
       {filtersOpen && (
         <div className="lg:hidden fixed inset-0 z-40">
           <div
@@ -243,7 +329,14 @@ export default function ProblemSet() {
             <div>
               <h3 className="font-semibold text-center mb-2">Stay Updated</h3>
               <div className="text-sm text-center">
-                <div className="font-medium mb-1">Before contest</div>
+                <div className="font-medium mb-1">
+                  {nextContest ? "Before contest" : "No upcoming contest"}
+                </div>
+                {nextContest && (
+                  <div className="mb-2 opacity-80 themed-text">
+                    {formatParts(countdown)}
+                  </div>
+                )}
                 <Link
                   to="/contests"
                   className="text-indigo-600 hover:underline"

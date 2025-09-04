@@ -147,3 +147,9 @@ header, footer {
   opacity: 1;
   cursor: col-resize;
 }
+
+/* Themed text class for consistent text coloring */
+.themed-text {
+  color: var(--colour-4); /* Uses the primary text color defined per theme */
+  transition: color 0.0s ease;
+}
