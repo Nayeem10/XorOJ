@@ -9,6 +9,7 @@ import java.util.HashSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.Judge_Mental.XorOJ.dto.ContestResponseDTO;
 import com.Judge_Mental.XorOJ.entity.Contest;
 import com.Judge_Mental.XorOJ.entity.Problem;
 import com.Judge_Mental.XorOJ.repo.ContestRepository;
@@ -104,5 +105,9 @@ public class ContestService {
             return true;
         }
         return false;
+    }
+
+    public List<ContestResponseDTO> findContestsDTOByUserId(Long userId) {
+        return contestRepo.findContestsDTOByUserId(userId);
     }
 }

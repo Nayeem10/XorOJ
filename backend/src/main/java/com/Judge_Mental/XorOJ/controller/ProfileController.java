@@ -1,5 +1,7 @@
 package com.Judge_Mental.XorOJ.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,8 +13,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.Judge_Mental.XorOJ.dto.ContestResponseDTO;
+import com.Judge_Mental.XorOJ.dto.SubmissionResponseDTO;
 import com.Judge_Mental.XorOJ.entity.XUser;
-import com.Judge_Mental.XorOJ.repo.XUserRepository;
+import com.Judge_Mental.XorOJ.service.ContestService;
+import com.Judge_Mental.XorOJ.service.SubmissionService;
+import com.Judge_Mental.XorOJ.service.XUserService;
 
 
 @RestController
@@ -20,7 +26,13 @@ import com.Judge_Mental.XorOJ.repo.XUserRepository;
 public class ProfileController {
     
     @Autowired
-    private XUserRepository repository;
+    private XUserService userService;
+
+    @Autowired
+    private SubmissionService submissionService;
+
+    @Autowired
+    private ContestService contestService;
 
     public record UserProfileDTO(String username, String email, String firstName, String lastName, String bio, String institute, String country, String contact, Boolean isItMe) {
         public static UserProfileDTO fromEntity(XUser user, Boolean isItMe) {
@@ -30,7 +42,7 @@ public class ProfileController {
     
     @GetMapping("{username}")
     public ResponseEntity<UserProfileDTO> getProfileByUsername(@PathVariable String username) {
-        XUser user = repository.findByUsername(username);
+        XUser user = userService.findByUsername(username);
 
         if (user != null) {
             return ResponseEntity.ok(UserProfileDTO.fromEntity(user, user.equals(user)));
@@ -53,7 +65,31 @@ public class ProfileController {
         user.setCountry(userProfileDTO.country());
         user.setContact(userProfileDTO.contact());
 
-        XUser savedUser = repository.save(user);
+        XUser savedUser = userService.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(UserProfileDTO.fromEntity(savedUser, savedUser.equals(user)));
+    }
+
+    @GetMapping("{username}/submissions")
+    public ResponseEntity<List<SubmissionResponseDTO>> getUserSubmissions(@PathVariable String username) {
+        XUser user = userService.findByUsername(username);
+
+        if (user != null) {
+            List<SubmissionResponseDTO> submissions = submissionService.getSubmissionResponsesByUserId(user.getId());
+            return ResponseEntity.ok(submissions);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @GetMapping("{username}/contests")
+    public ResponseEntity<List<ContestResponseDTO>> getUserContests(@PathVariable String username) {
+        XUser user = userService.findByUsername(username);
+
+        if (user != null) {
+            List<ContestResponseDTO> contests = contestService.findContestsDTOByUserId(user.getId());
+            return ResponseEntity.ok(contests);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 }

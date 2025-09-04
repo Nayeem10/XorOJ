@@ -20,6 +20,8 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     // Derived queries must traverse relation ids when using @ManyToOne
     List<Submission> findByUserIdAndContestId(Long userId, Long contestId);
 
+    List<Submission> findByUserId(Long userId);
+    
     List<Submission> findByContestIdOrderBySubmissionTimeDesc(Long contestId);
 
     // Lightweight projection for standings rebuild
@@ -41,5 +43,6 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     """)
     @QueryHints(@QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "500"))
     Stream<SubmView> streamByContest(@Param("contestId") Long contestId);
+
 
 }

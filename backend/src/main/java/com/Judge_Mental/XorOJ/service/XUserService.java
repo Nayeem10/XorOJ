@@ -29,4 +29,12 @@ public class XUserService {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
         return authentication.isAuthenticated() ? jwtService.generateToken(user.getUsername()) : null;
     }
+
+    public XUser findByUsername(String username) {
+        return repository.findByUsername(username);
+    }
+
+    public XUser save(XUser user) {
+        return repository.save(user);
+    }
 }

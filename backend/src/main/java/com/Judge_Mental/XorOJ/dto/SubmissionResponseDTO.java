@@ -17,7 +17,22 @@ public class SubmissionResponseDTO {
     private SubmissionStatus status;
     private Long executionTime;
     private Long memoryUsed;
-    private String filePath;
+    
+    public SubmissionResponseDTO() {
+    }
+    
+    public SubmissionResponseDTO(Long id, Long userId, Long problemId, String language, 
+                               LocalDateTime submissionTime, SubmissionStatus status, 
+                               Long executionTime, Long memoryUsed) {
+        this.id = id;
+        this.userId = userId;
+        this.problemId = problemId;
+        this.language = language;
+        this.submissionTime = submissionTime;
+        this.status = status;
+        this.executionTime = executionTime;
+        this.memoryUsed = memoryUsed;
+    }
 
     // Getters and Setters
 
@@ -31,7 +46,6 @@ public class SubmissionResponseDTO {
         dto.setStatus(submission.getStatus());
         dto.setExecutionTime(submission.getExecutionTime());
         dto.setMemoryUsed(submission.getMemoryUsed());
-        dto.setFilePath(submission.getFilePath());
         return dto;
     }
 }

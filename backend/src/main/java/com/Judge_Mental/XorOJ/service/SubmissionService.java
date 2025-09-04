@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.Judge_Mental.XorOJ.dto.SubmissionResponseDTO;
 import com.Judge_Mental.XorOJ.entity.Submission;
 import com.Judge_Mental.XorOJ.repo.SubmissionRepository;
 
@@ -81,5 +82,11 @@ public class SubmissionService {
         
         int endIndex = Math.min(startIndex + 20, allSubmissions.size());
         return allSubmissions.subList(startIndex, endIndex);
+    }
+
+    public List<SubmissionResponseDTO> getSubmissionResponsesByUserId(Long userId) {
+        return submissionRepository.findByUserId(userId).stream()
+                .map(SubmissionResponseDTO::fromSubmission)
+                .toList();
     }
 }
