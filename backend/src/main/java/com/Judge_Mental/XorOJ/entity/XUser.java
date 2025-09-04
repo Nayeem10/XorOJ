@@ -30,6 +30,10 @@ public class XUser {
     @Column(nullable = false)
     private String firstName;
     private String lastName;
+    private String bio;
+    private String institute;
+    private String country;
+    private String contact;
 
     private String role;
 
