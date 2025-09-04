@@ -1,5 +1,5 @@
 // src/pages/Statement.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import Button from "../../components/Button.jsx";
 import MathRenderer from "../../components/MathRenderer.jsx";
@@ -9,27 +9,30 @@ export default function Statement() {
   const { problemData, setProblemData } = useOutletContext();
   const problemId = problemData?.id;
 
-  // Local state for statement fields initialized from problemData
-  const [description, setDescription] = useState(problemData?.description || "");
-  const [inputFormat, setInputFormat] = useState(problemData?.inputFormat || "");
-  const [outputFormat, setOutputFormat] = useState(problemData?.outputFormat || "");
-  const [notes, setNotes] = useState(problemData?.notes || "");
-  const [sampleInput, setSampleInput] = useState(problemData?.sampleInput || "");
-  const [sampleOutput, setSampleOutput] = useState(problemData?.sampleOutput || "");
+  // Local editable state
+  const [description, setDescription] = useState("");
+  const [inputFormat, setInputFormat] = useState("");
+  const [outputFormat, setOutputFormat] = useState("");
+  const [notes, setNotes] = useState("");
+  const [sampleInput, setSampleInput] = useState("");
+  const [sampleOutput, setSampleOutput] = useState("");
 
-  // Save handler (POST only statement-related fields)
+  // Sync local state whenever problemData changes (handles tab switching)
+  useEffect(() => {
+    if (!problemData) return;
+    setDescription(problemData.description || "");
+    setInputFormat(problemData.inputFormat || "");
+    setOutputFormat(problemData.outputFormat || "");
+    setNotes(problemData.notes || "");
+    setSampleInput(problemData.sampleInput || "");
+    setSampleOutput(problemData.sampleOutput || "");
+  }, [problemData]);
+
+  // Save handler
   const handleSave = async () => {
-    const payload = {
-      description,
-      inputFormat,
-      outputFormat,
-      notes,
-      sampleInput,
-      sampleOutput,
-    };
+    const payload = { description, inputFormat, outputFormat, notes, sampleInput, sampleOutput };
 
     try {
-      console.log(payload);
       const res = await apiFetch(`/api/edit/problems/${problemId}/statement`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -39,17 +42,15 @@ export default function Statement() {
       if (!res) throw new Error("Failed to save statement");
 
       // Update shared problemData in context
-      setProblemData({ ...problemData, ...payload})
+      setProblemData({ ...problemData, ...payload });
 
       alert("Statement saved successfully!");
     } catch (err) {
-      // console.error(err);
       alert("Failed to save statement");
     }
   };
 
-
-  // Combine all content for live preview
+  // Live preview HTML
   const previewContent = `
     <div style="text-align: center; margin-bottom: 2rem;">
       <h1 style="font-size: 1.75rem; font-weight: 700; margin: 0; color: #1f2937;">
@@ -64,7 +65,6 @@ export default function Statement() {
     </div>
 
     <div style="text-align: left; font-size: 1rem; line-height: 1.6; color: #111827;">
-
       <p>${description || "<em>No description provided.</em>"}</p>
 
       <h2 style="font-size: 1.25rem; font-weight: 600; margin: 1.25rem 0 0.5rem; color: #1f2937;">
@@ -100,7 +100,7 @@ ${sampleOutput || " "}
 
   return (
     <div className="flex gap-6">
-      {/* Left side: Editor fields */}
+      {/* Left: Editor fields */}
       <div className="flex-1 space-y-4 max-w-xl">
         <Field label="Description (LaTeX)" value={description} setValue={setDescription} rows={4} />
         <Field label="Input Format (LaTeX)" value={inputFormat} setValue={setInputFormat} rows={2} />
@@ -116,7 +116,7 @@ ${sampleOutput || " "}
         </div>
       </div>
 
-      {/* Right side: Live MathJax preview */}
+      {/* Right: Live preview */}
       <div className="flex-1 border p-4 max-w-full overflow-auto bg-gray-50">
         <MathRenderer content={previewContent} />
       </div>
@@ -124,7 +124,7 @@ ${sampleOutput || " "}
   );
 }
 
-// Reusable Field Component
+// Reusable Field component
 function Field({ label, value, setValue, rows = 2 }) {
   return (
     <div>

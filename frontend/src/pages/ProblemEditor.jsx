@@ -5,43 +5,45 @@ import { apiFetch } from "../api/client.js";
 const tabs = [
   { name: "General Info", path: "general" },
   { name: "Statement", path: "statement" },
-  // { name: "Validator", path: "validator" },
   { name: "Generator", path: "generator" },
   { name: "Checker", path: "checker" },
   { name: "Tests", path: "tests" },
   { name: "Solution Files", path: "solutions" },
-  // { name: "Invocations", path: "invocations" },
-  // { name: "Manage Access", path: "access" },
 ];
 
 export default function ProblemEditor() {
   const { problemId } = useParams();
   const location = useLocation();
 
-  // If navigated from MyProblems, we may already have problemData
   const initialData = location.state?.problemData || null;
 
   const [problemData, setProblemData] = useState(initialData);
   const [loading, setLoading] = useState(!initialData);
 
-  // Fetch problemData if not already present (e.g. after reload)
+  // Fetch problem data if not present
   useEffect(() => {
+    if (initialData) return;
+
+    let cancelled = false;
+
     const fetchProblem = async () => {
       try {
         const res = await apiFetch(`/api/problems/${problemId}`);
         if (!res) throw new Error("Failed to fetch problem data");
-        setProblemData(res);
+        if (!cancelled) setProblemData(res);
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    if (!initialData) {
-      fetchProblem();
-    }
-  }, [problemId]);
+    fetchProblem();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [problemId, initialData]);
 
   if (loading || !problemData) {
     return <p className="p-6">Loading problem data...</p>;
@@ -72,8 +74,9 @@ export default function ProblemEditor() {
         ))}
       </nav>
 
-      {/* Render the active tab and pass shared problem data */}
-      <Outlet context={{ problemData, setProblemData }} />
+      {/* Outlet renders child tab component */}
+      {/* Add key so child remounts whenever problemData changes */}
+      <Outlet key={problemData.id} context={{ problemData, setProblemData }} />
     </div>
   );
 }
