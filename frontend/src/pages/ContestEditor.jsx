@@ -1,3 +1,4 @@
+// src/pages/ContestEditor.jsx
 import { useState, useEffect } from "react";
 import { NavLink, Outlet, useParams, useLocation } from "react-router-dom";
 import { apiFetch } from "../api/client.js";
@@ -40,21 +41,21 @@ export default function ContestEditor() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">
+      <h1 className="text-2xl font-bold mb-6 themed-text">
         {`Contest: ${contestData.title}`}
       </h1>
 
       {/* Tabs */}
-      <nav className="flex gap-4 border-b border-gray-200 mb-6 overflow-x-auto">
+      <nav className="flex gap-4 border-b border-[var(--colour-5)] mb-6 overflow-x-auto">
         {tabs.map((tab) => (
           <NavLink
             key={tab.path}
             to={tab.path}
             className={({ isActive }) =>
-              `px-3 py-2 -mb-px border-b-2 text-sm font-medium ${
+              `px-3 py-2 -mb-px border-b-2 text-sm font-medium themed-text ${
                 isActive
                   ? "border-indigo-600 text-indigo-600"
-                  : "border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300"
+                  : "border-transparent hover:border-[var(--colour-5)]"
               }`
             }
           >
