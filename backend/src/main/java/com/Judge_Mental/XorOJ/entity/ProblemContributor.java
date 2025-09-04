@@ -5,7 +5,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.io.Serializable;
+
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "problem_contributors")
@@ -19,6 +23,8 @@ public class ProblemContributor {
     @ManyToOne
     @MapsId("problemId")
     @JoinColumn(name = "problem_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonBackReference
     private Problem problem;
 
     @ManyToOne

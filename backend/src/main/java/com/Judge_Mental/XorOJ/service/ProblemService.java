@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.Judge_Mental.XorOJ.dto.ContestResponseDTO;
+import com.Judge_Mental.XorOJ.dto.ProblemViewDTO;
 import com.Judge_Mental.XorOJ.entity.Problem;
 import com.Judge_Mental.XorOJ.entity.ProblemContributor;
 import com.Judge_Mental.XorOJ.repo.ContestRepository;
@@ -46,11 +47,13 @@ public class ProblemService {
 
         return problemRepo.findProblemsByDifficultyRatingBetween(minRating, maxRating);
     }
-    public List<Problem> getAllProblems() {
-        return problemRepo.findAll();
+    public List<ProblemViewDTO> findAllProblemsAsView() {
+        var p = problemRepo.findAllProblemsAsView();
+        System.out.println(p);
+        return p;
     }
-    public List<Problem> findProblemsByAuthorId(Long authorId) {
-        return problemRepo.findProblemsByAuthorId(authorId);
+    public List<ProblemViewDTO> findProblemsAsViewByAuthorId(Long authorId) {
+        return problemRepo.findProblemsAsViewByAuthorId(authorId);
     }
     public Problem findProblemByIdAndAuthorId(Long id, Long authorId) {
         return problemRepo.findProblemByIdAndAuthorId(id, authorId);
@@ -79,19 +82,17 @@ public class ProblemService {
         return contestRepo.findContestByProblemId(problemId);
     }
 
-
-
-
-
     // Edit page
 
     public boolean authorHaveAccess(Long userId, Long problemId) {
-        return problemContributorRepo.existsByProblemIdAndUserId(problemId, userId) ? true : false;
+        boolean exists = problemContributorRepo.existsByProblemIdAndUserId(problemId, userId);
+        System.out.println(exists ? true : false);
+        return exists;
     }
 
     public boolean updateProblem(Long problemId, Long userId, String inputFileType, String outputFileType, int timeLimit, int memoryLimit, List<String> tags) {
         Problem problem = problemRepo.findProblemById(problemId).orElse(null);
-        if (problem == null || authorHaveAccess(userId, problemId)) {
+        if (problem == null || !authorHaveAccess(userId, problemId)) {
             return false;
         }
         problem.setInputFileType(inputFileType);
@@ -103,19 +104,22 @@ public class ProblemService {
         return true;
     }
 
-    public boolean updateProblem(Long userId, Long problemId, String title, String description, String inputFormat, String outputFormat, String notes, String sampleInput, String sampleOutput, Integer difficultyRating) {
+    public boolean updateProblem(Long userId, Long problemId, String description, String inputFormat, String outputFormat, String notes, String sampleInput, String sampleOutput) {
         Problem problem = problemRepo.findProblemById(problemId).orElse(null);
+        // System.out.println(problem);
+        System.out.println(userId);
+        System.out.println(problemId);
         if (problem == null || !authorHaveAccess(userId, problemId)) {
+            // System.out.println(p);
+            System.out.println("User does not have access to update this problem.");
             return false;
         }
-        problem.setTitle(title);
         problem.setDescription(description);
         problem.setInputFormat(inputFormat);
         problem.setOutputFormat(outputFormat);
         problem.setNotes(notes);
         problem.setSampleInput(sampleInput);
         problem.setSampleOutput(sampleOutput);
-        problem.setDifficultyRating(difficultyRating);
         problemRepo.save(problem);
         return true;
     }

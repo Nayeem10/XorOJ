@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -37,6 +38,7 @@ public class Contest {
         joinColumns = @JoinColumn(name = "contest_id"),
         inverseJoinColumns = @JoinColumn(name = "problem_id")
     )
+    @JsonIgnoreProperties({"contributors", "tags"})
     private Set<Problem> problems;
 
     @ManyToMany

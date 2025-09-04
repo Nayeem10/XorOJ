@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import Button from "../../components/Button.jsx";
 import MathRenderer from "../../components/MathRenderer.jsx";
+import { apiFetch } from "../../api/client.js";
 
 export default function Statement() {
   const { problemData, setProblemData } = useOutletContext();
@@ -28,7 +29,8 @@ export default function Statement() {
     };
 
     try {
-      const res = await fetch(`/api/edit/problems/${problemId}/statement`, {
+      console.log(payload);
+      const res = await apiFetch(`/api/edit/problems/${problemId}/statement`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

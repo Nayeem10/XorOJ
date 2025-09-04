@@ -43,11 +43,12 @@ public class ProblemEditorController {
         @RequestBody GeneralInfoDTO generalInfo,
         @AuthenticationPrincipal(expression = "user") XUser user) {
 
-        return problemService.updateProblem(problemId, user.getId(), generalInfo.inputFileType, generalInfo.outputFileType, generalInfo.timeLimit, generalInfo.memoryLimit, generalInfo.tags) ? ResponseEntity.ok(true) : ResponseEntity.ok(false);
+        System.out.println("Editing general info for problem ID: " + problemId);
+        return problemService.updateProblem(problemId, user.getId(), generalInfo.inputFileType, generalInfo.outputFileType, generalInfo.timeLimit, generalInfo.memoryLimit, generalInfo.tags) ? ResponseEntity.ok(true) : ResponseEntity.status(403).body(false);
     }
 
 
-    public record StatementDTO(String title, String description, String inputFormat, String outputFormat, String notes, String sampleInput, String sampleOutput, Integer difficultyRating) {}
+    public record StatementDTO(String description, String inputFormat, String outputFormat, String notes, String sampleInput, String sampleOutput) {}
 
     @PostMapping("/problems/{problemId}/statement")
     public ResponseEntity<Boolean> editProblemStatement(
@@ -55,7 +56,9 @@ public class ProblemEditorController {
         @RequestBody StatementDTO statementDTO,
         @AuthenticationPrincipal(expression = "user") XUser user) {
 
-        return problemService.updateProblem(user.getId(), problemId, statementDTO.title, statementDTO.description, statementDTO.inputFormat, statementDTO.outputFormat, statementDTO.notes, statementDTO.sampleInput, statementDTO.sampleOutput, statementDTO.difficultyRating) ? ResponseEntity.ok(true) : ResponseEntity.ok(false);
+        System.out.println("Editing statement for problem ID: " + statementDTO);
+        System.out.println(user);
+        return problemService.updateProblem(user.getId(), problemId, statementDTO.description, statementDTO.inputFormat, statementDTO.outputFormat, statementDTO.notes, statementDTO.sampleInput, statementDTO.sampleOutput) ? ResponseEntity.ok(true) : ResponseEntity.status(403).body(false);
     }
 
     // Generator endpoints

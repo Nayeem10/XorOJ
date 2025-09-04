@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Max;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.util.List;
 
@@ -42,7 +43,8 @@ public class Problem {
 
     private Long authorId;
 
-    @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "problem", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<ProblemContributor> contributors;
 
     @Min(value = 800)
@@ -58,9 +60,10 @@ public class Problem {
     @Column(nullable = false, columnDefinition = "integer default 512")
     private int memoryLimit;
 
+    private String status = "public";
+
     @ElementCollection
     @CollectionTable(name = "problem_tags", joinColumns = @JoinColumn(name = "problem_id"))
-    @Column(name = "tag")
     private List<String> tags;
 
     String inputFileType;
@@ -70,5 +73,8 @@ public class Problem {
     String solutionPath;
     String checkerPath;
     String validatorPath;
-
+    
+    @OneToMany(mappedBy = "problem", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonManagedReference
+    private List<GeneratorFile> generatorFiles;
 }

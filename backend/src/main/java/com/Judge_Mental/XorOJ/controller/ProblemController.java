@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.Judge_Mental.XorOJ.dto.ProblemViewDTO;
 import com.Judge_Mental.XorOJ.entity.Problem;
 import com.Judge_Mental.XorOJ.entity.XUser;
 import com.Judge_Mental.XorOJ.service.ProblemService;
@@ -23,8 +24,8 @@ public class ProblemController {
     private ProblemService problemService;
 
     @GetMapping
-    public ResponseEntity<List<Problem>> getAllProblems() {
-        List<Problem> problems = problemService.getAllProblems();
+    public ResponseEntity<List<ProblemViewDTO>> findAllProblems() {
+        List<ProblemViewDTO> problems = problemService.findAllProblemsAsView();
         return ResponseEntity.ok(problems);
     }
 

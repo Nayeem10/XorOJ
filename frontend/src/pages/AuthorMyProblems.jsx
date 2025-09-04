@@ -20,6 +20,7 @@ export default function MyProblems() {
     async function loadProblems() {
       try {
         const data = await apiFetch("/api/author/problems/my");
+        console.log("Loaded problems:", data);
         setProblems(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to load problems", err);
@@ -102,7 +103,7 @@ export default function MyProblems() {
                 <span>Memory: <b>{Math.floor(p.memoryLimit / 1000)} MB</b></span>
               </div>
 
-              {p.tags.length > 0 && (
+              {/* {p.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {p.tags.map((tag, i) => (
                     <span
@@ -113,12 +114,12 @@ export default function MyProblems() {
                     </span>
                   ))}
                 </div>
-              )}
+              )} */}
 
               <div className="mt-4 flex gap-2">
                 <Button
                   className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => navigate(`/author/problems/${data.id}/edit`, { state: { problemData: data } })}
+                  onClick={() => navigate(`/author/problems/${p.id}/edit`, { state: { problemData: p } })}
                 >
                   Edit
                 </Button>

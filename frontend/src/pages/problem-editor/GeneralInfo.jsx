@@ -93,6 +93,7 @@ export default function GeneralInfo() {
         tags: problemData.tags || [],
       };
 
+      console.log("Sending general info update:", payload);
       const res = await apiFetch(`/api/edit/problems/${problemData.id}/generalinfo`, {
         method: "POST",
         body: JSON.stringify(payload),

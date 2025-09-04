@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.Judge_Mental.XorOJ.dto.ProblemViewDTO;
 import com.Judge_Mental.XorOJ.entity.Contest;
 import com.Judge_Mental.XorOJ.entity.Problem;
 import com.Judge_Mental.XorOJ.entity.XUser;
@@ -45,10 +46,10 @@ public class JudgePanelController {
     }
 
     @GetMapping("/problems/my")
-    public ResponseEntity<List<Problem>> getAllProblemsOfAuthor(
+    public ResponseEntity<List<ProblemViewDTO>> getAllProblemsOfAuthor(
         @AuthenticationPrincipal(expression = "user") XUser user
     ) {
-        List<Problem> problems = problemService.findProblemsByAuthorId(user.getId());
+        List<ProblemViewDTO> problems = problemService.findProblemsAsViewByAuthorId(user.getId());
         return ResponseEntity.ok(problems);
     }
 

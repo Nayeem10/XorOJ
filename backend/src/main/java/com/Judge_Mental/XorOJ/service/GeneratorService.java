@@ -57,7 +57,8 @@ public class GeneratorService {
         System.out.println("Stored file at: " + filePath);
         // Create and save generator file entity
         GeneratorFile generatorFile = new GeneratorFile();
-        generatorFile.setGeneratorId(generatorId); 
+        GeneratorFile.GeneratorFileId id = new GeneratorFile.GeneratorFileId(problemId, generatorId);
+        generatorFile.setId(id);
         generatorFile.setFileName(file.getOriginalFilename());
         generatorFile.setFilePath(filePath);
         generatorFile.setProblem(problem);
@@ -74,8 +75,11 @@ public class GeneratorService {
             return false;
         }
         
+        // Create the composite key
+        GeneratorFile.GeneratorFileId id = new GeneratorFile.GeneratorFileId(problemId, generatorId);
+        
         // Get the generator file
-        Optional<GeneratorFile> generatorFileOpt = generatorFileRepository.findByProblemIdAndGeneratorId(problemId, generatorId);
+        Optional<GeneratorFile> generatorFileOpt = generatorFileRepository.findById(id);
         System.out.println("Found generator file: " + generatorFileOpt.isPresent());
 
         if (generatorFileOpt.isEmpty()) {
@@ -84,7 +88,7 @@ public class GeneratorService {
         }
         System.out.println("Deleting generator file: " + generatorId);
         // Delete the generator file
-        generatorFileRepository.deleteByProblemIdAndGeneratorId(problemId, generatorId);
+        generatorFileRepository.deleteById(id);
 
         // Also delete the physical file if needed
         String filePath = generatorFileOpt.get().getFilePath();
