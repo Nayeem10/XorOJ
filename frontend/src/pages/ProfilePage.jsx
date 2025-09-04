@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, NavLink, Outlet, Link, useLocation, data } from "react-router-dom";
-import { apiFetch } from "../api/client";
+import { useParams, NavLink, Outlet, useLocation, Link } from "react-router-dom";
+import { apiFetch } from "../api/client.js";
+
+const tabs = [
+  { name: "Edit Profile", path: "edit" },
+  { name: "Submissions", path: "submissions" },
+  { name: "Contest History", path: "contest-history" },
+];
 
 export default function ProfilePage() {
   const { username } = useParams();
@@ -9,12 +15,13 @@ export default function ProfilePage() {
   const initialData = location.state?.profileData || null;
 
   const [profile, setProfile] = useState(initialData);
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(!initialData);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (initialData) return;
     let cancelled = false;
+
     setLoading(true);
     setError(null);
 
@@ -29,13 +36,8 @@ export default function ProfilePage() {
         if (!cancelled) setLoading(false);
       });
 
-       console.log (data);
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [username, initialData]);
-
 
   const fullName = useMemo(() => {
     if (!profile) return "";
@@ -47,11 +49,8 @@ export default function ProfilePage() {
 
   const initials = useMemo(() => {
     if (!profile) return "";
-    const f = (profile.firstName || "").trim();
-    const l = (profile.lastName || "").trim();
     const pick = (s) => (s ? s[0].toUpperCase() : "");
-    const res = (pick(f) + pick(l)) || pick(profile.username || "U");
-    return res || "U";
+    return (pick(profile.firstName) + pick(profile.lastName)) || pick(profile.username) || "U";
   }, [profile]);
 
   const navLinkClass =
@@ -63,12 +62,9 @@ export default function ProfilePage() {
         : "border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300"
     }`;
 
-  if (loading || !profile) {
-    return <p className="p-6">Loading profile…</p>;
-  }
-  if (error) {
-    return <p className="p-6 text-red-500">Error: {error}</p>;
-  }
+  if (loading) return <p className="p-6">Loading profile…</p>;
+  if (error) return <p className="p-6 text-red-500">Error: {error}</p>;
+  if (!profile) return <p className="p-6">Profile not found</p>;
 
   return (
     <div className="p-6">
@@ -90,30 +86,34 @@ export default function ProfilePage() {
           </div>
           <div>
             <span className="text-sm text-gray-500 block">Institute</span>
-            <span className="font-medium">{profile.instituteName || "—"}</span>
+            <span className="font-medium">{profile.institute || "—"}</span>
+          </div>
+          <div>
+            <span className="text-sm text-gray-500 block">Country</span>
+            <span className="font-medium">{profile.country || "—"}</span>
           </div>
           <div>
             <span className="text-sm text-gray-500 block">Contact</span>
             <span className="font-medium">{profile.contact || "—"}</span>
+          </div>
+          <div>
+            <span className="text-sm text-gray-500 block">Bio</span>
+            <span className="font-medium">{profile.bio || "—"}</span>
           </div>
         </div>
       </section>
 
       {/* Navigation Tabs */}
       <nav className="flex gap-4 border-b border-gray-200 mt-6 overflow-x-auto">
-        <NavLink className={navLinkActive} to="edit">
-          Edit
-        </NavLink>
-        <NavLink className={navLinkActive} to="submissions">
-          Submissions
-        </NavLink>
-        <NavLink className={navLinkActive} to="contest-history">
-          Contest History
-        </NavLink>
+        {tabs.map((tab) => (
+          <NavLink key={tab.path} to={tab.path} className={navLinkActive}>
+            {tab.name}
+          </NavLink>
+        ))}
       </nav>
 
-      {/* Outlet renders child tab component */}
-      <Outlet key={profile.id} context={{ profile, setProfile }} />
+      {/* Outlet renders child tab component, key ensures remount on profile change */}
+      <Outlet key={profile.username} context={{ profile, setProfile }} />
 
       {/* External Links */}
       <div className="mt-6 flex flex-wrap gap-3">

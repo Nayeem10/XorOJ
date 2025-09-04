@@ -1,108 +1,117 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { apiFetch } from "../../api/client";
+import Button from "../../components/Button.jsx";
+import { apiFetch } from "../../api/client.js";
 
-export default function EditProfile() {
+export default function ProfileEditor() {
   const { profile, setProfile } = useOutletContext();
-
-  const [form, setForm] = useState({
-    firstName: profile.firstName || "",
-    lastName: profile.lastName || "",
-    email: profile.email || "",
-    instituteName: profile.instituteName || "",
-    contact: profile.contact || "",
-  });
   const [saving, setSaving] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+  // Editable fields
+  const [formData, setFormData] = useState({
+    firstName: profile.firstName || "",
+    lastName: profile.lastName || "",
+    bio: profile.bio || "",
+    institute: profile.institute || "",
+    country: profile.country || "",
+    contact: profile.contact || "",
+  });
+
+  const handleChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await apiFetch(`/api/edit/profile/${profile.username}`, {
+      // Merge editable fields into full profile object
+      const payload = { ...profile, ...formData };
+
+      const res = await apiFetch(`/api/profile/${profile.username}/edit`, {
         method: "POST",
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
-      if (!res) throw new Error("Failed to update profile");
-      setProfile(res);
-      alert("Profile updated successfully!");
+
+      if (!res) throw new Error("Failed to save profile");
+
+      // Update context state so all tabs see the new profile
+      setProfile(payload);
+      alert("Profile saved successfully!");
     } catch (err) {
-      alert("Error updating profile");
       console.error(err);
+      alert("Failed to save profile");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="mt-6 space-y-4 max-w-xl">
-      <h2 className="text-xl font-semibold">Edit Profile</h2>
-
-      <div className="form-control">
-        <label className="label">First Name</label>
+    <div className="space-y-4 max-w-xl mt-4">
+      <div>
+        <label className="block font-medium">First Name</label>
         <input
           type="text"
-          name="firstName"
-          value={form.firstName}
-          onChange={handleChange}
-          className="input input-bordered"
+          className="w-full border rounded px-2 py-1"
+          value={formData.firstName}
+          onChange={(e) => handleChange("firstName", e.target.value)}
         />
       </div>
 
-      <div className="form-control">
-        <label className="label">Last Name</label>
+      <div>
+        <label className="block font-medium">Last Name</label>
         <input
           type="text"
-          name="lastName"
-          value={form.lastName}
-          onChange={handleChange}
-          className="input input-bordered"
+          className="w-full border rounded px-2 py-1"
+          value={formData.lastName}
+          onChange={(e) => handleChange("lastName", e.target.value)}
         />
       </div>
 
-      <div className="form-control">
-        <label className="label">Email</label>
-        <input
-          type="email"
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          className="input input-bordered"
+      <div>
+        <label className="block font-medium">Bio</label>
+        <textarea
+          className="w-full border rounded px-2 py-1"
+          rows={3}
+          value={formData.bio || ""}
+          onChange={(e) => handleChange("bio", e.target.value)}
         />
       </div>
 
-      <div className="form-control">
-        <label className="label">Institute</label>
+      <div>
+        <label className="block font-medium">Institute</label>
         <input
           type="text"
-          name="instituteName"
-          value={form.instituteName}
-          onChange={handleChange}
-          className="input input-bordered"
+          className="w-full border rounded px-2 py-1"
+          value={formData.institute || ""}
+          onChange={(e) => handleChange("institute", e.target.value)}
         />
       </div>
 
-      <div className="form-control">
-        <label className="label">Contact</label>
+      <div>
+        <label className="block font-medium">Country</label>
         <input
           type="text"
-          name="contact"
-          value={form.contact}
-          onChange={handleChange}
-          className="input input-bordered"
+          className="w-full border rounded px-2 py-1"
+          value={formData.country || ""}
+          onChange={(e) => handleChange("country", e.target.value)}
         />
       </div>
 
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="btn btn-primary mt-4"
-      >
-        {saving ? "Saving…" : "Save Changes"}
-      </button>
+      <div>
+        <label className="block font-medium">Contact</label>
+        <input
+          type="text"
+          className="w-full border rounded px-2 py-1"
+          value={formData.contact || ""}
+          onChange={(e) => handleChange("contact", e.target.value)}
+        />
+      </div>
+
+      <div>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : "Save Profile"}
+        </Button>
+      </div>
     </div>
   );
 }

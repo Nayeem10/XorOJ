@@ -11,7 +11,6 @@ import AuthLayout from './layouts/AuthLayout.jsx'
 // Pages
 import HomePage from './pages/HomePage.jsx'
 import ErrorPage from './pages/ErrorPage.jsx'
-import ProfilePage from './pages/ProfilePage.jsx'
 import CreateProblemPage from './pages/CreateProblemPage.jsx'
 import ProblemSet from './pages/ProblemSet.jsx'
 import ProblemPage from './pages/ProblemPage.jsx'
@@ -46,6 +45,12 @@ import ContestEditor from "./pages/ContestEditor.jsx"
 import ContestGeneral from "./pages/contest-editor/ContestGeneral.jsx"
 import ContestProblems from "./pages/contest-editor/ContestProblems.jsx"
 import ContestParticipants from "./pages/contest-editor/ContestParticipants.jsx"
+
+// Profile Editor Tabs
+import ProfilePage from './pages/ProfilePage.jsx'
+import EditProfile from './pages/profile-editor/EditProfile.jsx'
+import Submissions from './pages/profile-editor/SubmissionHistory.jsx'
+import ContestHistory from './pages/profile-editor/ContestHistory.jsx'
 
 // IDE Page
 import IDE from "./components/IDE.jsx"
@@ -113,7 +118,16 @@ const router = createBrowserRouter([
       },
 
       // Profile
-      { path: 'profile/:username', element: <ProfilePage /> },
+      {
+        path: 'profile/:username',
+        element: <ProfilePage />,
+        children: [
+          { index: true, element: <Navigate to="edit" replace /> },
+          { path: 'edit', element: <EditProfile /> },
+          { path: 'submissions', element: <Submissions /> },
+          { path: 'contest-history', element: <ContestHistory /> },
+        ],
+      },
 
       // Problems
       { path: 'problems', element: <ProblemSet /> },
@@ -127,10 +141,11 @@ const router = createBrowserRouter([
       { path: 'contests/:id/my', element: <ContestMySubmissionsPage /> },
       { path: 'contests/:id/submissions/:pageNumber', element: <ContestAllSubmissionsPage /> },
       { path: 'contests/:id/standings', element: <ContestStandingsPage /> },
+
+      // IDE
+      { path: 'IDE/code', element: <IDE /> },
     ],
   },
-
-  { path: 'IDE/code', element: <IDE /> },
 ])
 
 createRoot(document.getElementById('root')).render(
