@@ -19,6 +19,7 @@ export default function ProblemSet() {
 
   // upcoming contest
   const [nextContest, setNextContest] = useState(null);
+  const [isRegistered, setIsRegistered] = useState(false);
   const [countdown, setCountdown] = useState(null);
   const timerRef = useRef(null);
 
@@ -87,6 +88,30 @@ export default function ProblemSet() {
     loadContests();
     return () => { cancelled = true; };
   }, []);
+
+  // ---------- fetch registration for next contest ----------
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadReg() {
+      if (!nextContest?.id) {
+        setIsRegistered(false);
+        return;
+      }
+      try {
+        const detail = await apiFetch(`/api/contests/${nextContest.id}`);
+        // Accept any of these keys as "registered"
+        const reg = !!(detail?.isRegistered ?? detail?.registered ?? detail?.userRegistered);
+        if (!cancelled) setIsRegistered(reg);
+      } catch (e) {
+        // If error, assume not registered; you can tweak this if your API behaves differently
+        if (!cancelled) setIsRegistered(false);
+      }
+    }
+
+    loadReg();
+    return () => { cancelled = true; };
+  }, [nextContest]);
 
   // ---------- live countdown ----------
   useEffect(() => {
@@ -253,14 +278,24 @@ export default function ProblemSet() {
               <div className="font-medium mb-1">
                 {nextContest ? "Before contest" : "No upcoming contest"}
               </div>
+
               {nextContest && (
-                <div className="mb-2 opacity-80 themed-text">
-                  {formatParts(countdown)}
-                </div>
+                <>
+                  <div className="mb-1 font-semibold">{nextContest.title}</div>
+                  <div className="mb-3 opacity-80 themed-text">
+                    {formatParts(countdown)}
+                  </div>
+
+                  {!isRegistered && (
+                    <Link
+                      to={`/contests/${nextContest.id}/view`}
+                      className="btn btn-sm"
+                    >
+                      Register
+                    </Link>
+                  )}
+                </>
               )}
-              <Link to="/contests" className="text-indigo-600 hover:underline">
-                View upcoming contests
-              </Link>
             </div>
           </div>
 
@@ -332,18 +367,25 @@ export default function ProblemSet() {
                 <div className="font-medium mb-1">
                   {nextContest ? "Before contest" : "No upcoming contest"}
                 </div>
+
                 {nextContest && (
-                  <div className="mb-2 opacity-80 themed-text">
-                    {formatParts(countdown)}
-                  </div>
+                  <>
+                    <div className="mb-1 font-semibold">{nextContest.title}</div>
+                    <div className="mb-3 opacity-80 themed-text">
+                      {formatParts(countdown)}
+                    </div>
+
+                    {!isRegistered && (
+                      <Link
+                        to={`/contests/${nextContest.id}/view`}
+                        className="btn btn-sm w-full"
+                        onClick={() => setFiltersOpen(false)}
+                      >
+                        Register
+                      </Link>
+                    )}
+                  </>
                 )}
-                <Link
-                  to="/contests"
-                  className="text-indigo-600 hover:underline"
-                  onClick={() => setFiltersOpen(false)}
-                >
-                  View upcoming contests
-                </Link>
               </div>
             </div>
 

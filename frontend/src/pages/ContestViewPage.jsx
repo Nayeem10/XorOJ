@@ -12,96 +12,168 @@ export default function ContestViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // registration UI state
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState("");
+
   useEffect(() => {
     let cancelled = false;
 
-    // Fetch contest details
-    apiFetch(`/api/contests/${id}/details`)
-      .then((data) => {
-        if (cancelled) return; // Ensure no state updates if the component is unmounted
+    async function load() {
+      try {
+        // Details endpoint
+        const data = await apiFetch(`/api/contests/${id}/details`);
+        if (cancelled) return;
 
-        setContest(data); // Update the contest state with fetched data
-        setLoading(false); // Stop loading state
-      })
-      .catch((err) => {
+        setContest(data);
+
+        // Try common keys for "registered"
+        const registered =
+          !!(data?.isRegistered ?? data?.registered ?? data?.userRegistered);
+        setIsRegistered(registered);
+
+        setLoading(false);
+      } catch (e) {
         if (!cancelled) {
-          setError(err.message); // Capture the error if request fails
-          setLoading(false); // Stop loading state
+          setError(e.message || "Failed to load contest");
+          setLoading(false);
         }
-      });
+      }
+    }
 
-    return () => { cancelled = true; }; // Set cancelled to true when the component is unmounted
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
+  async function handleRegister() {
+    setRegError("");
+    setRegLoading(true);
+    try {
+      // NOTE: If your API uses a different endpoint, change it here.
+      await apiFetch(`/api/contests/${id}/register`, { method: "POST" });
+      setIsRegistered(true);
+    } catch (e) {
+      setRegError(e.message || "Registration failed");
+    } finally {
+      setRegLoading(false);
+    }
+  }
+
   if (loading) return <p className="text-center mt-6">Loading contest…</p>;
-  if (error || !contest) return <p className="text-red-500 text-center mt-6">Error: {error || "Not found"}</p>;
+  if (error || !contest)
+    return (
+      <p className="text-red-500 text-center mt-6">
+        Error: {error || "Not found"}
+      </p>
+    );
 
   const now = new Date();
   const startTime = new Date(contest.startTime);
   const endTime = new Date(contest.endTime);
-
-  // Contest not started yet
-  if (now < startTime) {
-    return (
-      <>
-        <div className="max-w-6xl mx-auto mt-6 px-4">
-          <p className="text-gray-500">Contest has not started yet.</p>
-          <Link to={`/contests`} className="btn mt-2">Back to Contests</Link>
-        </div>
-      </>
-    );
-  }
+  const hasStarted = now >= startTime;
+  const hasEnded = now > endTime;
 
   return (
-    <>
-      <div className="max-w-6xl mx-auto mt-6 px-4 space-y-6">
-        {/* Contest Header */}
-        <Card>
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">{contest.title}</h1>
-            <CountdownTimer startTime={endTime} />
+    <div className="max-w-6xl mx-auto mt-6 px-4 space-y-6">
+      {/* Header */}
+      <Card>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h1 className="text-2xl font-bold">{contest.title}</h1>
+
+          {/* Before start -> show countdown to start; During -> countdown to end; After -> static text */}
+          {!hasStarted ? (
+            <div className="text-sm">
+              <div className="font-medium mb-1">Starts in</div>
+              <CountdownTimer startTime={startTime} />
+            </div>
+          ) : !hasEnded ? (
+            <div className="text-sm">
+              <div className="font-medium mb-1">Ends in</div>
+              <CountdownTimer startTime={endTime} />
+            </div>
+          ) : (
+            <div className="text-sm opacity-80">Contest ended</div>
+          )}
+        </div>
+
+        {contest.description && <p className="mt-2">{contest.description}</p>}
+
+        {/* Registration area (only visible before start) */}
+        {!hasStarted && (
+          <div className="mt-4">
+            {isRegistered ? (
+              <div className="inline-flex items-center gap-2 rounded-md px-3 py-2 border"
+                   style={{ borderColor: "var(--colour-5)" }}>
+                ✅ You are registered
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={handleRegister}
+                  disabled={regLoading}
+                  className="btn btn-primary"
+                >
+                  {regLoading ? "Registering…" : "Register"}
+                </button>
+                {regError && <span className="text-red-500 text-sm">{regError}</span>}
+              </div>
+            )}
           </div>
-          {contest.description && <p className="mt-2">{contest.description}</p>}
-        </Card>
-
-        {/* Problems */}
-        {contest.problems && contest.problems.length > 0 && (
-          <Card title="Problems">
-            <ul className="list-decimal pl-5">
-              {contest.problems.map((p) => (
-                <li key={p.id}>
-                  <Link to={`/contests/${id}/problems/${p.id}`} className="text-indigo-600">{p.title}</Link>
-                </li>
-              ))}
-            </ul>
-          </Card>
         )}
+      </Card>
 
-        {/* Tabs */}
-        <Card title="My Submissions"> 
-          <Link to={`/contests/${id}/my`} className="text-indigo-600 hover:underline">
-            View My Submissions
-          </Link>
+      {/* Problems (visible after start) */}
+      {hasStarted && contest.problems && contest.problems.length > 0 && (
+        <Card title="Problems">
+          <ul className="list-decimal pl-5">
+            {contest.problems.map((p) => (
+              <li key={p.id}>
+                <Link
+                  to={`/contests/${id}/problems/${p.id}`}
+                  className="text-indigo-600 hover:underline"
+                >
+                  {p.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </Card>
+      )}
 
-        <Card title="All Submissions">
-          <Link
-            to={`/contests/${id}/submissions/1`} // Always go to page 1 by default
-            className="text-indigo-600 hover:underline"
-          >
-            View All Submissions
-          </Link>
-        </Card>
+      {/* Tabs */}
+      <Card title="My Submissions">
+        <Link
+          to={`/contests/${id}/my`}
+          className="text-indigo-600 hover:underline"
+        >
+          View My Submissions
+        </Link>
+      </Card>
 
+      <Card title="All Submissions">
+        <Link
+          to={`/contests/${id}/submissions/1`} // Always go to page 1 by default
+          className="text-indigo-600 hover:underline"
+        >
+          View All Submissions
+        </Link>
+      </Card>
 
-        <Card title="Standings">
-          <Link to={`/contests/${id}/standings`} className="text-indigo-600 hover:underline">
-            View Standings
-          </Link>
-        </Card>
+      <Card title="Standings">
+        <Link
+          to={`/contests/${id}/standings`}
+          className="text-indigo-600 hover:underline"
+        >
+          View Standings
+        </Link>
+      </Card>
 
-        <Link to={`/contests`} className="btn btn-secondary mt-4">Back to Contests</Link>
-      </div>
-    </>
+      <Link to={`/contests`} className="btn btn-secondary mt-4">
+        Back to Contests
+      </Link>
+    </div>
   );
 }
