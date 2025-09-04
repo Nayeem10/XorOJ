@@ -47,4 +47,12 @@ public class ContestService {
     public List<Contest> findContestsByAuthorId(Long authorId) {
         return contestRepo.findContestsByAuthorId(authorId);
     }
+    
+    public LocalDateTime getContestEndTime(Long contestId) {
+        Contest contest = contestRepo.findById(contestId).orElse(null);
+        if (contest != null) {
+            return contest.getEndTime();
+        }
+        return null;
+    }
 }

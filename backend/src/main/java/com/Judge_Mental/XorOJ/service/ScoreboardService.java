@@ -67,9 +67,18 @@ public class ScoreboardService {
     public void finalizeIfEnded(Long contestId) {
         Snapshot s = boards.computeIfAbsent(contestId, this::createSnapshotFromDb);
         if (s.finalized) return;
+        
+        // Check if the contest has ended
         if (s.now() >= s.endEpochMs) {
             s.finalized = true;
+            // Save final standings to the database
             writeSnapshotEntity(s, true);
+            System.out.println("Contest " + contestId + " finalized and saved to database");
+        } else {
+            // If contest is not ended but getting close (last 5 minutes), persist snapshot
+            if (s.now() >= s.endEpochMs - (5 * 60 * 1000)) {
+                persistSnapshot(contestId);
+            }
         }
     }
 
@@ -96,6 +105,69 @@ public class ScoreboardService {
             return true;
         } catch (Exception ex) {
             return false;
+        }
+    }
+    
+    /**
+     * Update standings when a submission is processed.
+     * This method should be called from the SubmissionController after a submission is judged.
+     */
+    public void updateStandingsForSubmission(Long contestId, Long problemId, Long userId, String username, 
+                                           boolean accepted, LocalDateTime submissionTime) {
+        if (contestId == 0L) return; // Skip if it's not a contest submission
+        
+        Snapshot s = boards.computeIfAbsent(contestId, this::createSnapshotFromDb);
+        if (s.finalized) return; // Don't update if contest is finalized
+        
+        // Ensure problem ID is in the problem list
+        List<Long> problemIds = new ArrayList<>(s.problemIds);
+        if (!problemIds.contains(problemId) && problemId != null) {
+            problemIds.add(problemId);
+            s.setProblemIds(problemIds);
+        }
+        
+        // Get existing row or create new one
+        StandingRow existingRow = s.rowsByUser.getOrDefault(userId, 
+                new StandingRow(userId, username, 0, 0, new HashMap<>()));
+        
+        // Get existing cell or create new one
+        Map<Long, StandingCell> cells = new HashMap<>(existingRow.cells());
+        StandingCell cell = cells.getOrDefault(problemId, new StandingCell(false, null, 0));
+        
+        // Only update if not already solved
+        if (cell.timeFromStartMin() == null) {
+            if (accepted) {
+                // Calculate time from start in minutes
+                long startTimeMs = s.startEpochMs;
+                long submissionTimeMs = submissionTime.toInstant(ZoneOffset.UTC).toEpochMilli();
+                int timeFromStartMin = (int) ((submissionTimeMs - startTimeMs) / (1000 * 60));
+                
+                // Create updated cell
+                boolean isFirstSolved = s.rowsByUser.values().stream()
+                        .noneMatch(r -> r.cells().containsKey(problemId) && 
+                                   r.cells().get(problemId).timeFromStartMin() != null);
+                        
+                cells.put(problemId, new StandingCell(isFirstSolved, timeFromStartMin, cell.rejections()));
+                
+                // Update row's solved count and penalty
+                int solved = existingRow.solved() + 1;
+                int penalty = existingRow.penaltyMinutes() + timeFromStartMin + (cell.rejections() * 20);
+                
+                // Create and insert updated row
+                StandingRow updatedRow = new StandingRow(userId, username, solved, penalty, cells);
+                s.upsertRow(updatedRow);
+            } else {
+                // Increment rejection count for unsuccessful submissions
+                cells.put(problemId, new StandingCell(false, null, cell.rejections() + 1));
+                StandingRow updatedRow = new StandingRow(userId, username, existingRow.solved(), 
+                                                      existingRow.penaltyMinutes(), cells);
+                s.upsertRow(updatedRow);
+            }
+        }
+        
+        // Persist snapshot after update if contest is about to end
+        if (s.now() >= s.endEpochMs - (5 * 60 * 1000)) { // 5 minutes before contest ends
+            persistSnapshot(contestId);
         }
     }
 

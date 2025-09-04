@@ -151,18 +151,10 @@ public class JudgingService {
                 }
             }
             
-            // If we've gotten this far, all tests have passed
-            if (verdicts.isEmpty()) {
-                // No test cases were run
-                submission.setStatus(SubmissionStatus.RUNTIME_ERROR);
-                submission.setErrorMessage("No test cases or generators available for this problem");
-            } else {
-                submission.setStatus(SubmissionStatus.ACCEPTED);
-                submission.setErrorMessage(null);
-            }
+            submission.setStatus(SubmissionStatus.ACCEPTED);
+            submission.setErrorMessage(null);
             
-            return submissionRepository.save(submission);
-            
+            return  submissionRepository.save(submission);
         } catch (Exception e) {
             // Handle any exceptions
             submission.setStatus(SubmissionStatus.RUNTIME_ERROR);

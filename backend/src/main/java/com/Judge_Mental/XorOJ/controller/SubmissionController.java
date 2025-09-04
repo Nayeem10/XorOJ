@@ -19,7 +19,9 @@ import com.Judge_Mental.XorOJ.entity.Submission;
 import com.Judge_Mental.XorOJ.entity.XUser;
 import com.Judge_Mental.XorOJ.entity.Submission.SubmissionStatus;
 import com.Judge_Mental.XorOJ.judge.CppExecutor.RunResult;
+import com.Judge_Mental.XorOJ.service.ContestService;
 import com.Judge_Mental.XorOJ.service.JudgingService;
+import com.Judge_Mental.XorOJ.service.ScoreboardService;
 import com.Judge_Mental.XorOJ.service.SubmissionService;
 
 @RestController
@@ -31,6 +33,12 @@ public class SubmissionController {
 
     @Autowired
     private JudgingService judgingService;
+
+    @Autowired
+    private ScoreboardService scoreboardService;
+
+    @Autowired
+    private ContestService contestService;
 
     @GetMapping("/contests/{id}/my")
     public List<SubmissionResponseDTO> getSubmissionsForContest(
@@ -70,6 +78,18 @@ public class SubmissionController {
             submission.language()
         );
         savedSubmission = judgingService.judgeSubmission(savedSubmission);
+
+        if(contestId <= 0 && contestService.getContestEndTime(contestId) == null && contestService.getContestEndTime(contestId).isBefore(savedSubmission.getSubmissionTime())) {
+                scoreboardService.updateStandingsForSubmission(
+                contestId,
+                problemId,
+                user.getId(),
+                user.getUsername(),
+                savedSubmission.getStatus() == SubmissionStatus.ACCEPTED,
+                savedSubmission.getSubmissionTime()
+            );
+        }
+        
         return savedSubmission.getStatus();
     }
 
