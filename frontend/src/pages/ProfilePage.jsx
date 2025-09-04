@@ -2,12 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, NavLink, Outlet, useLocation, Link } from "react-router-dom";
 import { apiFetch } from "../api/client.js";
 
-const tabs = [
-  { name: "Edit Profile", path: "edit" },
-  { name: "Submissions", path: "submissions" },
-  { name: "Contest History", path: "contest-history" },
-];
-
 export default function ProfilePage() {
   const { username } = useParams();
   const location = useLocation();
@@ -36,8 +30,9 @@ export default function ProfilePage() {
         if (!cancelled) setLoading(false);
       });
 
+
     return () => { cancelled = true; };
-  }, [username, initialData]);
+  }, [username]);
 
   const fullName = useMemo(() => {
     if (!profile) return "";
@@ -65,6 +60,15 @@ export default function ProfilePage() {
   if (loading) return <p className="p-6">Loading profile…</p>;
   if (error) return <p className="p-6 text-red-500">Error: {error}</p>;
   if (!profile) return <p className="p-6">Profile not found</p>;
+
+  const isItMe = Boolean(profile?.isItMe);
+  console.log (isItMe);
+  // Tabs are only defined AFTER profile is loaded
+  const tabs = [
+    ...(isItMe? [{ name: "Edit Profile", path: "edit" }] : []),
+    { name: "Submissions", path: "submissions" },
+    { name: "Contest History", path: "contest-history" },
+  ];
 
   return (
     <div className="p-6">
@@ -112,18 +116,20 @@ export default function ProfilePage() {
         ))}
       </nav>
 
-      {/* Outlet renders child tab component, key ensures remount on profile change */}
+      {/* Outlet renders child tab component */}
       <Outlet key={profile.username} context={{ profile, setProfile }} />
 
-      {/* External Links */}
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link to="/author/problems" className="btn">
-          Problems Created
-        </Link>
-        <Link to="/author/contests" className="btn">
-          Contests Hosted
-        </Link>
-      </div>
+       {/* External Links */}
+      {isItMe && (
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link to="/author/problems" className="btn">
+            Problems Created
+          </Link>
+          <Link to="/author/contests" className="btn">
+            Contests Hosted
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

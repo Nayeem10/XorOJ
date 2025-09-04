@@ -122,7 +122,7 @@ const router = createBrowserRouter([
         path: 'profile/:username',
         element: <ProfilePage />,
         children: [
-          { index: true, element: <Navigate to="edit" replace /> },
+          // { index: true, element: <Navigate to="edit" replace /> },
           { path: 'edit', element: <EditProfile /> },
           { path: 'submissions', element: <Submissions /> },
           { path: 'contest-history', element: <ContestHistory /> },
