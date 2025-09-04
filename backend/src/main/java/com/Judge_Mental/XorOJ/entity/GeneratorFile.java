@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import com.Judge_Mental.XorOJ.entity.listener.GeneratorFileEntityListener;
 import java.io.Serializable;
 
 @Entity
@@ -15,6 +16,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(GeneratorFileEntityListener.class)
 public class GeneratorFile {
     
     @EmbeddedId

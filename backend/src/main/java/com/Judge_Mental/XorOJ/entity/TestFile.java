@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import com.Judge_Mental.XorOJ.entity.listener.TestFileEntityListener;
 import java.io.Serializable;
 
 @Entity
@@ -15,6 +16,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(TestFileEntityListener.class)
 public class TestFile {
     
     @EmbeddedId

@@ -32,7 +32,7 @@ public class SubmissionController {
     @Autowired
     private JudgingService judgingService;
 
-    @GetMapping("contests/{id}/my")
+    @GetMapping("/contests/{id}/my")
     public List<SubmissionResponseDTO> getSubmissionsForContest(
         @PathVariable Long id,
         @AuthenticationPrincipal(expression = "user") XUser user) {
@@ -43,7 +43,7 @@ public class SubmissionController {
            .collect(Collectors.toList());
     }
 
-    @GetMapping("contests/{id}/page/{pageNumber}")
+    @GetMapping("/contests/{id}/page/{pageNumber}")
     public List<SubmissionResponseDTO> getPaginatedSubmissions(
         @PathVariable Long id,
         @PathVariable int pageNumber) {
@@ -55,7 +55,7 @@ public class SubmissionController {
     }
 
     public record submissionRequestDTO(String code, String language) {}
-    @PostMapping("contests/{contestId}/problems/{problemId}/submit")
+    @PostMapping("/contests/{contestId}/problems/{problemId}/submit")
     public SubmissionStatus submitSolution(
         @PathVariable Long contestId,
         @PathVariable Long problemId,
@@ -66,6 +66,23 @@ public class SubmissionController {
             submission.code(),
             problemId,
             contestId,
+            user.getId(),
+            submission.language()
+        );
+        savedSubmission = judgingService.judgeSubmission(savedSubmission);
+        return savedSubmission.getStatus();
+    }
+
+    @PostMapping("/problems/{problemId}/submit")
+    public SubmissionStatus submitSolution(
+        @PathVariable Long problemId,
+        @AuthenticationPrincipal(expression = "user") XUser user,
+        @RequestBody submissionRequestDTO submission) throws IOException, InterruptedException {
+
+        Submission savedSubmission = submissionService.createSubmissionFromString(
+            submission.code(),
+            problemId,
+            0L,
             user.getId(),
             submission.language()
         );

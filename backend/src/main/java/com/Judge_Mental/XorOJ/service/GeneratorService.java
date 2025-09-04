@@ -31,7 +31,7 @@ public class GeneratorService {
     public GeneratorFile createGeneratorFile(Long problemId, Long userId, int generatorId, MultipartFile file) throws IOException {
         // Check if user has access to the problem
         if (!problemService.authorHaveAccess(userId, problemId)) {
-            System.out.println("User does not have access to problem: " + problemId);
+            // System.out.println("User does not have access to problem: " + problemId);
             throw new RuntimeException("User does not have access to this problem");
         }
         
@@ -39,13 +39,13 @@ public class GeneratorService {
         Problem problem = problemService.findProblemById(problemId);
 
         if(problem == null) {
-            System.out.println("Problem not found");
+            // System.out.println("Problem not found");
             throw new RuntimeException("Problem not found");
         }
 
         // Check if generator with same ID already exists
         if (generatorFileRepository.existsByProblemIdAndGeneratorId(problemId, generatorId)) {
-            System.out.println("Generator with ID " + generatorId + " already exists");
+            // System.out.println("Generator with ID " + generatorId + " already exists");
             throw new RuntimeException("Generator with this ID already exists");
         }
         
@@ -54,7 +54,7 @@ public class GeneratorService {
         String fileName = generatorId + "_" + file.getOriginalFilename();
         String filePath = fileStorageService.storeFile(file, directory, fileName);
 
-        System.out.println("Stored file at: " + filePath);
+        // System.out.println("Stored file at: " + filePath);
         // Create and save generator file entity
         GeneratorFile generatorFile = new GeneratorFile();
         GeneratorFile.GeneratorFileId id = new GeneratorFile.GeneratorFileId(problemId, generatorId);
@@ -63,7 +63,7 @@ public class GeneratorService {
         generatorFile.setFilePath(filePath);
         generatorFile.setProblem(problem);
 
-        System.out.println("Created generator file: " + generatorFile.getFileName());
+        // System.out.println("Created generator file: " + generatorFile.getFileName());
 
         return generatorFileRepository.save(generatorFile);
     }
@@ -71,7 +71,7 @@ public class GeneratorService {
     public boolean deleteGeneratorFile(Long problemId, Long userId, int generatorId) {
         // Check if user has access to the problem
         if (!problemService.authorHaveAccess(userId, problemId)) {
-            System.out.println("User does not have access to problem: " + problemId);
+            // System.out.println("User does not have access to problem: " + problemId);
             return false;
         }
         
@@ -80,13 +80,13 @@ public class GeneratorService {
         
         // Get the generator file
         Optional<GeneratorFile> generatorFileOpt = generatorFileRepository.findById(id);
-        System.out.println("Found generator file: " + generatorFileOpt.isPresent());
+        // System.out.println("Found generator file: " + generatorFileOpt.isPresent());
 
         if (generatorFileOpt.isEmpty()) {
-            System.out.println("Generator file not found: " + generatorId);
+            // System.out.println("Generator file not found: " + generatorId);
             return false;
         }
-        System.out.println("Deleting generator file: " + generatorId);
+        // System.out.println("Deleting generator file: " + generatorId);
         // Delete the generator file
         generatorFileRepository.deleteById(id);
 

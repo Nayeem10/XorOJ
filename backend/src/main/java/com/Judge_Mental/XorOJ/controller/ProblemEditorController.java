@@ -27,7 +27,7 @@ import com.Judge_Mental.XorOJ.service.ProblemService;
 import com.Judge_Mental.XorOJ.service.TestFileService;
 
 @RestController
-@RequestMapping("api/edit")
+@RequestMapping("api/edit/problems/{problemId}")
 public class ProblemEditorController {
     
     @Autowired
@@ -43,7 +43,7 @@ public class ProblemEditorController {
 
     public record GeneralInfoDTO(String inputFileType, String outputFileType, int timeLimit, int memoryLimit, Long contestId, List<String> tags) {}
 
-    @PostMapping("/problems/{problemId}/generalinfo")
+    @PostMapping("/generalinfo")
     public ResponseEntity<Boolean> editProblem(
         @PathVariable Long problemId, 
         @RequestBody GeneralInfoDTO generalInfo,
@@ -56,7 +56,7 @@ public class ProblemEditorController {
 
     public record StatementDTO(String description, String inputFormat, String outputFormat, String notes, String sampleInput, String sampleOutput) {}
 
-    @PostMapping("/problems/{problemId}/statement")
+    @PostMapping("/statement")
     public ResponseEntity<Boolean> editProblemStatement(
         @PathVariable Long problemId, 
         @RequestBody StatementDTO statementDTO,
@@ -68,7 +68,7 @@ public class ProblemEditorController {
     }
 
     // Generator endpoints
-    @GetMapping("/problems/{problemId}/generator")
+    @GetMapping("/generator")
     public ResponseEntity<List<GeneratorFileDTO>> getGeneratorFiles(
             @PathVariable Long problemId,
             @AuthenticationPrincipal(expression = "user") XUser user) {
@@ -85,7 +85,7 @@ public class ProblemEditorController {
         return ResponseEntity.ok(dtoList);
     }
 
-    @PostMapping("/problems/{problemId}/generator")
+    @PostMapping("/generator")
     public ResponseEntity<Boolean> createGeneratorFile(
             @PathVariable Long problemId,
             @RequestParam("id") int generatorId,
@@ -106,7 +106,7 @@ public class ProblemEditorController {
         }
     }
 
-    @DeleteMapping("/problems/{problemId}/generator/{generatorId}")
+    @DeleteMapping("/generator/{generatorId}")
     public ResponseEntity<Boolean> deleteGeneratorFile(
             @PathVariable Long problemId,
             @PathVariable int generatorId,
@@ -119,7 +119,7 @@ public class ProblemEditorController {
     }
     
     // Test file endpoints
-    @GetMapping("/problems/{problemId}/testfile")
+    @GetMapping("/testfile")
     public ResponseEntity<List<TestFileDTO>> getTestFiles(
             @PathVariable Long problemId,
             @AuthenticationPrincipal(expression = "user") XUser user) {
@@ -136,7 +136,7 @@ public class ProblemEditorController {
         return ResponseEntity.ok(dtoList);
     }
 
-    @PostMapping("/problems/{problemId}/testfile")
+    @PostMapping("/testfile")
     public ResponseEntity<Boolean> createTestFile(
             @PathVariable Long problemId,
             @RequestParam("id") int testId,
@@ -154,7 +154,7 @@ public class ProblemEditorController {
         }
     }
 
-    @DeleteMapping("/problems/{problemId}/testfile/{testId}")
+    @DeleteMapping("/testfile/{testId}")
     public ResponseEntity<Boolean> deleteTestFile(
             @PathVariable Long problemId,
             @PathVariable int testId,
@@ -166,7 +166,7 @@ public class ProblemEditorController {
         return success ? ResponseEntity.ok(true) : ResponseEntity.badRequest().body(false);
     }
 
-    @PostMapping("problems/{problemId}/solution")
+    @PostMapping("/solution")
     public ResponseEntity<Boolean> createMainSolutionFile(
             @PathVariable Long problemId,
             @RequestParam("file") MultipartFile file,

@@ -61,4 +61,14 @@ public class JudgePanelController {
         return ResponseEntity.ok(contests);
     }
 
+
+    @PostMapping("/contests/init")
+    public ResponseEntity<Contest> createContest(
+        @AuthenticationPrincipal(expression = "user") XUser user
+    ) {
+        Contest contest = new Contest();
+        contest.setAuthorId(user.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(contest);
+    }
+
 }
