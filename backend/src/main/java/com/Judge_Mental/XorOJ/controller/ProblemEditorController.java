@@ -165,4 +165,20 @@ public class ProblemEditorController {
         boolean success = testFileService.deleteTestFile(problemId, user.getId(), testId);
         return success ? ResponseEntity.ok(true) : ResponseEntity.badRequest().body(false);
     }
+
+    @PostMapping("problems/{problemId}/solution")
+    public ResponseEntity<Boolean> createMainSolutionFile(
+            @PathVariable Long problemId,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal(expression = "user") XUser user) {
+
+        try {
+            boolean success = problemService.updateProblem(user.getId(), problemId, file);
+            return success ? ResponseEntity.ok(true) : ResponseEntity.badRequest().body(false);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body(null);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 }

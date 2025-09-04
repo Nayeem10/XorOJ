@@ -1,15 +1,16 @@
 package com.Judge_Mental.XorOJ.judge;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
+import java.util.concurrent.*;
 
 import org.springframework.stereotype.Component;
 
@@ -18,16 +19,49 @@ import com.Judge_Mental.XorOJ.entity.Submission.SubmissionStatus;
 @Component
 public class CppExecutor {
 
-    // Thread-local to carry the container name into run() without changing signatures
-    private static final ThreadLocal<String> CURRENT_CONTAINER_NAME = new ThreadLocal<>();
-    
+    private static final String DOCKER_IMAGE = "gcc-time:13";
+    private static final String TIME_FMT = "TIME_USED_MS=%e\\nMEM_USED_KB=%M";
+    private static final int DEFAULT_PIDS_LIMIT = 256;
+
+    /** Pooled daemon threads for stream reading; prevents thread leaks. */
+    private static final ExecutorService STREAM_POOL = Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r, "cpp-exec-stream");
+        t.setDaemon(true);
+        return t;
+    });
+
+    static {
+        // Cleanly shut down on JVM exit
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            STREAM_POOL.shutdownNow();
+        }, "cpp-exec-stream-shutdown"));
+    }
+
+    /** Immutable process spec so the container name always travels with the command. */
+    private static final class ProcSpec {
+        final List<String> command;
+        final String containerName;
+        ProcSpec(List<String> command, String containerName) {
+            this.command = command;
+            this.containerName = containerName;
+        }
+    }
+
     public static class JudgeVerdict {
         public final SubmissionStatus status;
         public final String message;
-        
+        public final long timeUsedMillis;
+        public final long memoryUsedKB;
+
         public JudgeVerdict(SubmissionStatus status, String message) {
+            this(status, message, -1, -1);
+        }
+
+        public JudgeVerdict(SubmissionStatus status, String message, long timeUsedMillis, long memoryUsedKB) {
             this.status = status;
             this.message = message;
+            this.timeUsedMillis = timeUsedMillis;
+            this.memoryUsedKB = memoryUsedKB;
         }
     }
 
@@ -37,6 +71,7 @@ public class CppExecutor {
         public final String stderr;
         public final long timeUsedMillis;
         public final long memoryUsedKB;
+
         RunResult(int exitCode, String stdout, String stderr, long timeUsedMillis, long memoryUsedKB) {
             this.exitCode = exitCode;
             this.stdout = stdout;
@@ -47,382 +82,357 @@ public class CppExecutor {
     }
 
     /**
-     * Compile and run C++17 source inside Docker (gcc:13).
-     *
-     * @param cppSource        The full C++ source (a single file main.cpp).
-     * @param stdinContent     Optional standard input for the program (null allowed).
-     * @param timeLimitSeconds Wall-clock time limit for execution (seconds).
-     * @param memoryMB         Memory limit for the container (MB).
-     * @param cpuCores         CPU cores (can be fractional, e.g., 1.0).
+     * Compile and run C++17 source inside Docker (gcc:13), using a mounted input file (Option A).
      */
     public RunResult execute(String cppSource, String stdinContent,
-                             int timeLimitSeconds, int memoryMB, double cpuCores) throws IOException, InterruptedException {
+                             int timeLimitMs, int memoryKB, double cpuCores) throws IOException, InterruptedException {
 
-        // 1) Create work dir with absolute paths
+        // 1) Isolated sandbox directories
         Path work = Files.createTempDirectory("cpp-job-").toAbsolutePath();
         Path srcDir = work.resolve("src");
         Path binDir = work.resolve("bin");
         Files.createDirectories(srcDir);
         Files.createDirectories(binDir);
 
-        // 2) Write files
+        // 2) Files
         Path mainCpp = srcDir.resolve("main.cpp");
         Files.writeString(mainCpp, cppSource, StandardCharsets.UTF_8);
+
         Path inputTxt = srcDir.resolve("input.txt");
         Files.writeString(inputTxt, stdinContent == null ? "" : stdinContent, StandardCharsets.UTF_8);
 
-        // 3) Build docker run command
-        // We mount source read-only at /work, and a writable /out for the compiled binary.
-        // We also give the container a tmpfs /tmp to keep the root FS read-only.
-        String srcMount = toDockerMountPath(srcDir);
-        String binMount = toDockerMountPath(binDir);
+        // 3) Build & run (input file mounted and redirected inside container)
+        ProcSpec spec = buildCompileRunSpec(
+                mainCpp,          // source file
+                binDir,           // /out mount
+                inputTxt,         // input file to mount and redirect from
+                timeLimitMs,
+                memoryKB,
+                cpuCores
+        );
 
-        // Unique container name so we can kill it on timeout
-        String containerName = "cpp-job-" + System.nanoTime();
-        CURRENT_CONTAINER_NAME.set(containerName);
+        // Give a small buffer for compile cost
+        return runProcess(spec, timeLimitMs + 10_000L);
+    }
 
-        List<String> cmd = new ArrayList<>(List.of(
-            "docker", "run", "--rm",
-            "--name", containerName,
-            "--network", "none",
-            "--cpus=" + cpuCores,
-            "-m", memoryMB + "m",
-            "--pids-limit", "256",
-            "--read-only",
-            "-v", srcMount + ":/work:ro",
-            "-v", binMount + ":/out:rw",
-            "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
-            "gcc-time:13",
-            "bash", "-lc",
-            // Compile, then run with /usr/bin/time for resource usage
-            "g++ -O2 -std=c++17 /work/main.cpp -o /out/main && " +
-            "/usr/bin/time -f 'TIME_USED_MS=%e\\nMEM_USED_KB=%M' timeout " + timeLimitSeconds + "s /out/main < /work/input.txt"
-        ));
+    /* ===================== Public judging APIs ===================== */
 
+    /**
+     * Compare output of source code with generator + main solution (Option A).
+     */
+    public JudgeVerdict compareWithGenerator(String codePath, String mainSolutionPath, String generatorPath,
+                                             long timeoutMillis, long memoryLimitKB) {
         try {
-            return run(cmd,  // overall hard cap (compile + run) — add a small buffer
-                    (long) (timeLimitSeconds * 1000L + 10_000L));
-        } finally {
-            CURRENT_CONTAINER_NAME.remove();
+            if (!new File(codePath).exists() || !new File(mainSolutionPath).exists() || !new File(generatorPath).exists()) {
+                return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, "One or more required files not found");
+            }
+
+            Path codeFilePath = Path.of(codePath);
+            Path mainFilePath = Path.of(mainSolutionPath);
+            Path genFilePath  = Path.of(generatorPath);
+
+            Path workDir = Files.createTempDirectory("compare-generator-");
+            Path outDir  = workDir.resolve("out");
+            Files.createDirectories(outDir);
+
+            // 1) Run generator (no input), capture stdout and persist as input file
+            ProcSpec genSpec = buildCompileRunSpec(
+                    genFilePath,
+                    outDir,
+                    null,
+                    (int) timeoutMillis,
+                    (int) memoryLimitKB,
+                    1.0
+            );
+            RunResult gen = runProcess(genSpec, timeoutMillis);
+            if (gen.exitCode != 0) {
+                return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, "Generator failed: " + gen.stderr, gen.timeUsedMillis, gen.memoryUsedKB);
+            }
+
+            Path inputPath = Files.createTempFile(workDir, "input-", ".txt");
+            Files.writeString(inputPath, gen.stdout, StandardCharsets.UTF_8);
+
+            // 2) Judge both solutions on the generated input
+            return judgeOnInputPaths(codeFilePath, mainFilePath, inputPath, (int) timeoutMillis, (int) memoryLimitKB, 1.0);
+        } catch (Exception e) {
+            return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, "Error during execution: " + e.getMessage());
         }
     }
 
-    private static RunResult run(List<String> command, long timeoutMillis) throws IOException, InterruptedException {
-        ProcessBuilder pb = new ProcessBuilder(command);
+    /**
+     * Compare output of source code vs main solution on a provided input file (Option A).
+     */
+    public JudgeVerdict compareWithInputFile(String codePath, String mainSolutionPath, String inputFilePath,
+                                             long timeoutMillis, long memoryLimitKB) {
+        try {
+            if (!new File(codePath).exists() || !new File(mainSolutionPath).exists() || !new File(inputFilePath).exists()) {
+                return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, "One or more required files not found");
+            }
+
+            Path codeFilePath = Path.of(codePath);
+            Path mainFilePath = Path.of(mainSolutionPath);
+            Path inputPath    = Path.of(inputFilePath);
+
+            // Unified judging core
+            return judgeOnInputPaths(codeFilePath, mainFilePath, inputPath, (int) timeoutMillis, (int) memoryLimitKB, 1.0);
+        } catch (Exception e) {
+            return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, "Error during execution: " + e.getMessage());
+        }
+    }
+
+    /* ===================== Unified judging core ===================== */
+
+    private JudgeVerdict judgeOnInputPaths(Path candidate, Path mainSolution, Path inputPath,
+                                           int timeLimitMs, int memoryKB, double cpuCores) throws IOException, InterruptedException {
+
+        Path workDir = Files.createTempDirectory("judge-io-");
+        Path outDir  = workDir.resolve("out");
+        Files.createDirectories(outDir);
+
+        // Run main to get expected
+        RunResult main = runProcess(
+                buildCompileRunSpec(mainSolution, outDir, inputPath, timeLimitMs, memoryKB, cpuCores),
+                timeLimitMs + 5_000L
+        );
+        if (main.exitCode != 0) {
+            return classifyNonZero("Main solution", main, timeLimitMs, memoryKB);
+        }
+        String expected = main.stdout.trim();
+
+        // Run candidate
+        RunResult cand = runProcess(
+                buildCompileRunSpec(candidate, outDir, inputPath, timeLimitMs, memoryKB, cpuCores),
+                timeLimitMs + 5_000L
+        );
+
+        if (cand.exitCode != 0) {
+            return classifyNonZero("Submission", cand, timeLimitMs, memoryKB);
+        }
+
+        String actual = cand.stdout.trim();
+        if (Objects.equals(actual, expected)) {
+            return new JudgeVerdict(SubmissionStatus.ACCEPTED,
+                    "Time: " + cand.timeUsedMillis + "ms, Memory: " + cand.memoryUsedKB + "KB",
+                    cand.timeUsedMillis, cand.memoryUsedKB);
+        } else {
+            return new JudgeVerdict(SubmissionStatus.WRONG_ANSWER,
+                    "Expected output and actual output differ",
+                    cand.timeUsedMillis, cand.memoryUsedKB);
+        }
+    }
+
+    private JudgeVerdict classifyNonZero(String who, RunResult r, long timeoutMs, long memoryKB) {
+        // 1) Compilation / Linker error: no timing info (time/mem < 0) and compiler markers in stderr
+        if ((r.timeUsedMillis < 0 && r.memoryUsedKB < 0) && hasCompileMarkers(r.stderr)) {
+            String snippet = firstLines(r.stderr, 40); // keep the message short
+            return new JudgeVerdict(
+                    SubmissionStatus.COMPILATION_ERROR,        // <-- ensure this exists in your enum
+                    who + " compilation failed:\n" + snippet,
+                    r.timeUsedMillis, r.memoryUsedKB
+            );
+        }
+
+        // 2) Time limit exceeded
+        if (r.exitCode == 124 || (r.timeUsedMillis >= 0 && r.timeUsedMillis >= timeoutMs)) {
+            return new JudgeVerdict(
+                    SubmissionStatus.TIME_LIMIT_EXCEEDED,
+                    who + " time limit exceeded: " + timeoutMs + "ms",
+                    r.timeUsedMillis, r.memoryUsedKB
+            );
+        }
+
+        // 3) Memory limit exceeded (common: 137/SIGKILL or 'Killed')
+        if (r.exitCode == 137 || r.stderr.contains("Killed")) {
+            return new JudgeVerdict(
+                    SubmissionStatus.MEMORY_LIMIT_EXCEEDED,
+                    who + " memory limit exceeded: " + memoryKB + "KB",
+                    r.timeUsedMillis, r.memoryUsedKB
+            );
+        }
+
+        // 4) Heuristic backup using measured RSS
+        if (r.memoryUsedKB >= 0 && r.memoryUsedKB >= memoryKB) {
+            return new JudgeVerdict(
+                    SubmissionStatus.MEMORY_LIMIT_EXCEEDED,
+                    who + " memory usage " + r.memoryUsedKB + "KB exceeded limit " + memoryKB + "KB",
+                    r.timeUsedMillis, r.memoryUsedKB
+            );
+        }
+
+        // 5) Generic runtime error
+        return new JudgeVerdict(
+                SubmissionStatus.RUNTIME_ERROR,
+                who + " runtime error: " + (r.stderr.isBlank() ? ("exitCode=" + r.exitCode) : r.stderr),
+                r.timeUsedMillis, r.memoryUsedKB
+        );
+    }
+
+
+    /* ===================== Internal helpers ===================== */
+
+    private static boolean hasCompileMarkers(String err) {
+        if (err == null) return false;
+        String e = err.toLowerCase();
+        return  e.contains("error:") ||                 // gcc/g++ diagnostics
+                e.contains("fatal error:") ||
+                e.contains("g++: ") ||                  // driver messages
+                e.contains("collect2: error") ||        // linker wrapper
+                e.contains("undefined reference to") || // linker errors
+                e.contains("multiple definition of") ||
+                e.contains("ld: ");                     // ld messages
+    }
+
+    private static String firstLines(String s, int maxLines) {
+        if (s == null || s.isEmpty()) return "";
+        String[] lines = s.split("\\R");
+        StringBuilder sb = new StringBuilder();
+        int n = Math.min(maxLines, lines.length);
+        for (int i = 0; i < n; i++) sb.append(lines[i]).append('\n');
+        if (lines.length > maxLines) sb.append("... (truncated)");
+        return sb.toString().trim();
+    }
+
+
+    private ProcSpec buildCompileRunSpec(Path sourceFile,
+                                         Path outDir,
+                                         Path inputFileOrNull, // nullable
+                                         int timeLimitMs,
+                                         int memoryKB,
+                                         double cpuCores) throws IOException {
+
+        Files.createDirectories(outDir);
+
+        Path sourceParent = sourceFile.toAbsolutePath().getParent();
+        String srcMount   = toDockerMountPath(sourceParent);
+        String srcName    = sourceFile.getFileName().toString();
+        String binMount   = toDockerMountPath(outDir.toAbsolutePath());
+
+        String containerName = "cpp-job-" + System.nanoTime();
+        int timeLimitSeconds = (int) Math.ceil(timeLimitMs / 1000.0);
+        int memoryMB         = (int) Math.ceil(memoryKB / 1024.0);
+
+        List<String> cmd = new ArrayList<>();
+        cmd.add("docker"); cmd.add("run"); cmd.add("--rm");
+        cmd.add("--name"); cmd.add(containerName);
+        cmd.add("--network"); cmd.add("none");
+        cmd.add("--cpus=" + cpuCores);
+        cmd.add("-m"); cmd.add(memoryMB + "m");
+        cmd.add("--pids-limit"); cmd.add(String.valueOf(DEFAULT_PIDS_LIMIT));
+        cmd.add("--read-only");
+        cmd.add("-v"); cmd.add(srcMount + ":/work:ro");
+        cmd.add("-v"); cmd.add(binMount + ":/out:rw");
+
+        String runLine;
+        if (inputFileOrNull != null) {
+            String inputMount = toDockerMountPath(inputFileOrNull.toAbsolutePath().getParent());
+            String inputName  = inputFileOrNull.getFileName().toString();
+            cmd.add("-v"); cmd.add(inputMount + ":/input:ro");
+            runLine = "g++ -O2 -std=c++17 /work/" + srcName + " -o /out/main && " +
+                      "/usr/bin/time -f '" + TIME_FMT + "' timeout " + timeLimitSeconds + "s /out/main < /input/" + inputName;
+        } else {
+            runLine = "g++ -O2 -std=c++17 /work/" + srcName + " -o /out/main && " +
+                      "/usr/bin/time -f '" + TIME_FMT + "' timeout " + timeLimitSeconds + "s /out/main";
+        }
+
+        cmd.add("--tmpfs"); cmd.add("/tmp:rw,noexec,nosuid,size=64m");
+        cmd.add(DOCKER_IMAGE);
+        cmd.add("bash"); cmd.add("-lc");
+        cmd.add(runLine);
+
+        return new ProcSpec(cmd, containerName);
+    }
+
+    private RunResult runProcess(ProcSpec spec, long timeoutMillis) throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder(spec.command);
         pb.redirectErrorStream(false);
         Process p = pb.start();
 
-        // Capture stdout/stderr concurrently
-        Future<String> outF = readAsync(p.getInputStream());
-        Future<String> errF = readAsync(p.getErrorStream());
+        CompletableFuture<String> outF = readAsync(p.getInputStream());
+        CompletableFuture<String> errF = readAsync(p.getErrorStream());
 
         boolean finished = p.waitFor(timeoutMillis, TimeUnit.MILLISECONDS);
         if (!finished) {
             p.destroyForcibly();
+            bestEffortKillContainer(spec.containerName);
 
-            // *** FIX: ensure the container is not orphaned ***
-            String name = CURRENT_CONTAINER_NAME.get();
-            if (name != null && !name.isBlank()) {
-                try {
-                    new ProcessBuilder("docker", "rm", "-f", name)
-                        .redirectErrorStream(true)
-                        .start()
-                        .waitFor(3, TimeUnit.SECONDS);
-                } catch (Exception ignore) {}
-            }
-
-            return new RunResult(124, "", "Runner timed out (hard cap).", -1, -1);
+            String out = getFuture(outF, Duration.ofMillis(200));
+            return new RunResult(124, out == null ? "" : out, "Runner timed out (hard cap).", -1, -1);
         }
+
         int code = p.exitValue();
-        String out = getFuture(outF);
-        String err = getFuture(errF);
+        String out = getFuture(outF, Duration.ofSeconds(1));
+        String err = getFuture(errF, Duration.ofSeconds(1));
+        if (out == null) out = "";
+        if (err == null) err = "";
 
-        // Parse time and memory usage from stderr (from /usr/bin/time)
-        long timeUsed = -1;
-        long memUsed = -1;
-        StringBuilder newErr = new StringBuilder();
-        for (String line : err.split("\\n")) {
-            if (line.startsWith("TIME_USED_MS=")) {
-                try { timeUsed = (long)(Double.parseDouble(line.substring(13)) * 1000); } catch (Exception ignore) {}
-            } else if (line.startsWith("MEM_USED_KB=")) {
-                try { memUsed = Long.parseLong(line.substring(12)); } catch (Exception ignore) {}
-            } else {
-                newErr.append(line).append('\n');
+        ParsedUsage usage = parseUsageAndStrip(err);
+        return new RunResult(code, out, usage.cleanStderr.trim(), usage.timeMs, usage.memKB);
+    }
+
+    private static void bestEffortKillContainer(String name) {
+        if (name == null || name.isBlank()) return;
+        try {
+            new ProcessBuilder("docker", "rm", "-f", name)
+                    .redirectErrorStream(true)
+                    .start()
+                    .waitFor(3, TimeUnit.SECONDS);
+        } catch (Exception ignored) {}
+    }
+
+    private static CompletableFuture<String> readAsync(InputStream in) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (in) {
+                return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                return "";
             }
+        }, STREAM_POOL);
+    }
+
+    private static String getFuture(CompletableFuture<String> f, Duration timeout) {
+        try {
+            return f.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return null;
         }
-        return new RunResult(code, out, newErr.toString().trim(), timeUsed, memUsed);
     }
 
-    private static Future<String> readAsync(InputStream in) {
-        return Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r, "stream-reader");
-            t.setDaemon(true);
-            return t;
-        }).submit(() -> new String(in.readAllBytes(), StandardCharsets.UTF_8));
-    }
-
-    private static String getFuture(Future<String> f) {
-        try { return f.get(1, TimeUnit.SECONDS); } catch (Exception e) { return ""; }
-    }
-
-    /**
-     * Convert host path to a Docker-friendly mount string.
-     * Works on Linux/Mac out of the box. On Windows, Docker Desktop requires the drive to be shared.
-     * 
-     * @param p The path to convert (assumed to be absolute)
-     * @return A Docker-friendly mount string
-     */
     private static String toDockerMountPath(Path p) {
-        // Ensure the path is absolute
         String raw = p.isAbsolute() ? p.toString() : p.toAbsolutePath().toString();
-        // Normalize Windows backslashes to forward slashes for Docker
         return raw.replace('\\', '/');
     }
 
-    /**
-     * Compare the output of a source code with a main solution using a generator.
-     * All paths are absolute.
-     * 
-     * @param sourceCodePath    Absolute path to the source code file to be judged
-     * @param generatorPath     Absolute path to the generator file (generates test cases)
-     * @param mainSolutionPath  Absolute path to the main solution file (correct solution)
-     * @param timeLimitSeconds  Wall-clock time limit for execution (seconds)
-     * @param memoryMB          Memory limit for the container (MB)
-     * @param cpuCores          CPU cores (can be fractional, e.g., 1.0)
-     * @return A verdict indicating if the source code produces the same output as the main solution
-     */
-    public JudgeVerdict compareWithGenerator(String sourceCodePath, String generatorPath, String mainSolutionPath,
-                                           int timeLimitSeconds, int memoryMB, double cpuCores) throws IOException, InterruptedException {
-        // Use the absolute paths directly
-        Path sourceCodeFile = Path.of(sourceCodePath);
-        Path generatorFile = Path.of(generatorPath);
-        Path mainSolutionFile = Path.of(mainSolutionPath);
-        
-        // Check if all files exist
-        if (!Files.exists(sourceCodeFile) || !Files.exists(generatorFile) || !Files.exists(mainSolutionFile)) {
-            return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, "One or more required files not found");
+    /* ---------- stderr parsing for /usr/bin/time output ---------- */
+
+    private static final class ParsedUsage {
+        final long timeMs;
+        final long memKB;
+        final String cleanStderr;
+        ParsedUsage(long timeMs, long memKB, String cleanStderr) {
+            this.timeMs = timeMs;
+            this.memKB = memKB;
+            this.cleanStderr = cleanStderr;
         }
-        
-        try {
-            // Create a temporary directory for the evaluation
-            Path tempDir = Files.createTempDirectory("judge-evaluation-");
-            
-            // Step 1: Compile and run the generator using Docker
-            List<String> generatorCmd = buildDockerCompileAndRunCommand(
-                generatorFile.toString(), tempDir.resolve("generator").toString(), 
-                null, timeLimitSeconds, memoryMB, cpuCores);
-                
-            RunResult generatorResult = runCommand(generatorCmd, timeLimitSeconds * 1000L + 5000L);
-            if (generatorResult.exitCode != 0) {
-                return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, 
-                    "Generator failed: " + generatorResult.stderr);
-            }
-            String testInput = generatorResult.stdout;
-            Path inputFile = tempDir.resolve("input.txt");
-            Files.writeString(inputFile, testInput, StandardCharsets.UTF_8);
-            
-            // Step 2: Compile and run the main solution using Docker
-            List<String> mainSolutionCmd = buildDockerCompileAndRunCommand(
-                mainSolutionFile.toString(), tempDir.resolve("main_solution").toString(), 
-                inputFile.toString(), timeLimitSeconds, memoryMB, cpuCores);
-                
-            RunResult mainSolutionResult = runCommand(mainSolutionCmd, timeLimitSeconds * 1000L + 5000L);
-            if (mainSolutionResult.exitCode != 0) {
-                return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, 
-                    "Main solution failed: " + mainSolutionResult.stderr);
-            }
-            String expectedOutput = mainSolutionResult.stdout.trim();
-            
-            // Step 3: Compile and run the source code using Docker
-            List<String> sourceCodeCmd = buildDockerCompileAndRunCommand(
-                sourceCodeFile.toString(), tempDir.resolve("submission").toString(), 
-                inputFile.toString(), timeLimitSeconds, memoryMB, cpuCores);
-                
-            RunResult sourceCodeResult = runCommand(sourceCodeCmd, timeLimitSeconds * 1000L + 5000L);
-            
-            // Check for various outcomes
-            if (sourceCodeResult.exitCode != 0) {
-                if (sourceCodeResult.exitCode == 124) {
-                    return new JudgeVerdict(SubmissionStatus.TIME_LIMIT_EXCEEDED, 
-                        "Time limit exceeded: " + sourceCodeResult.timeUsedMillis + "ms");
-                } else if (sourceCodeResult.stderr.contains("std::bad_alloc") || sourceCodeResult.memoryUsedKB >= memoryMB * 1024) {
-                    return new JudgeVerdict(SubmissionStatus.MEMORY_LIMIT_EXCEEDED, 
-                        "Memory limit exceeded: " + sourceCodeResult.memoryUsedKB + "KB");
-                } else {
-                    return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, 
-                        "Runtime error: " + sourceCodeResult.stderr);
-                }
-            }
-            
-            // Compare outputs
-            String actualOutput = sourceCodeResult.stdout.trim();
-            if (actualOutput.equals(expectedOutput)) {
-                return new JudgeVerdict(SubmissionStatus.ACCEPTED, 
-                    "Time: " + sourceCodeResult.timeUsedMillis + "ms, Memory: " + sourceCodeResult.memoryUsedKB + "KB");
+    }
+
+    private static ParsedUsage parseUsageAndStrip(String stderr) {
+        long timeMs = -1;
+        long memKB  = -1;
+        StringBuilder other = new StringBuilder();
+        for (String line : stderr.split("\\R")) {
+            if (line.startsWith("TIME_USED_MS=")) {
+                try {
+                    double secs = Double.parseDouble(line.substring("TIME_USED_MS=".length()));
+                    timeMs = (long) Math.round(secs * 1000.0);
+                } catch (NumberFormatException ignored) {}
+            } else if (line.startsWith("MEM_USED_KB=")) {
+                try {
+                    memKB = Long.parseLong(line.substring("MEM_USED_KB=".length()));
+                } catch (NumberFormatException ignored) {}
             } else {
-                return new JudgeVerdict(SubmissionStatus.WRONG_ANSWER, 
-                    "Expected output and actual output differ");
+                other.append(line).append('\n');
             }
-        } catch (Exception e) {
-            return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, 
-                "Error during execution: " + e.getMessage());
         }
-    }
-    
-    /**
-     * Helper method to build Docker command for compiling and running C++ code.
-     * All paths are expected to be absolute.
-     * 
-     * @param sourceFilePath    Absolute path to the source file
-     * @param outputDir         Absolute path to the output directory
-     * @param inputFilePath     Absolute path to the input file (can be null)
-     * @param timeLimitSeconds  Time limit in seconds
-     * @param memoryMB          Memory limit in MB
-     * @param cpuCores          CPU cores to allocate
-     */
-    private List<String> buildDockerCompileAndRunCommand(String sourceFilePath, String outputDir, 
-                                                      String inputFilePath, int timeLimitSeconds, 
-                                                      int memoryMB, double cpuCores) throws IOException {
-        Path sourcePath = Path.of(sourceFilePath);
-        Path outDir = Path.of(outputDir);
-        Files.createDirectories(outDir);
-        
-        // Prepare mounts
-        String srcMount = toDockerMountPath(sourcePath.getParent());
-        String srcName = sourcePath.getFileName().toString();
-        String binMount = toDockerMountPath(outDir);
-        
-        // Unique container name
-        String containerName = "cpp-job-" + System.nanoTime();
-        CURRENT_CONTAINER_NAME.set(containerName);
-        
-        List<String> cmd = new ArrayList<>(List.of(
-            "docker", "run", "--rm",
-            "--name", containerName,
-            "--network", "none",
-            "--cpus=" + cpuCores,
-            "-m", memoryMB + "m",
-            "--pids-limit", "256",
-            "--read-only",
-            "-v", srcMount + ":/work:ro",
-            "-v", binMount + ":/out:rw"));
-            
-        // Add input file mount if provided
-        if (inputFilePath != null) {
-            String inputMount = toDockerMountPath(Path.of(inputFilePath).getParent());
-            String inputName = Path.of(inputFilePath).getFileName().toString();
-            cmd.add("-v");
-            cmd.add(inputMount + ":/input:ro");
-            
-            // Complete the docker command
-            cmd.addAll(List.of(
-                "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
-                "gcc-time:13",
-                "bash", "-lc",
-                "g++ -O2 -std=c++17 /work/" + srcName + " -o /out/main && " +
-                "/usr/bin/time -f 'TIME_USED_MS=%e\\nMEM_USED_KB=%M' timeout " + 
-                timeLimitSeconds + "s /out/main < /input/" + inputName
-            ));
-        } else {
-            // Without input file
-            cmd.addAll(List.of(
-                "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
-                "gcc-time:13",
-                "bash", "-lc",
-                "g++ -O2 -std=c++17 /work/" + srcName + " -o /out/main && " +
-                "/usr/bin/time -f 'TIME_USED_MS=%e\\nMEM_USED_KB=%M' timeout " + 
-                timeLimitSeconds + "s /out/main"
-            ));
-        }
-        
-        return cmd;
-    }
-    
-    /**
-     * Run command with timeout and process the output.
-     * This method uses the original run method for execution.
-     * 
-     * @param command        The command to run
-     * @param timeoutMillis  Timeout in milliseconds
-     * @return               Result of the execution
-     */
-    private RunResult runCommand(List<String> command, long timeoutMillis) throws IOException, InterruptedException {
-        return run(command, timeoutMillis);
-    }
-    
-    /**
-     * Compare the output of a source code with a main solution using a provided input file.
-     * All paths are absolute.
-     * 
-     * @param sourceCodePath    Absolute path to the source code file to be judged
-     * @param mainSolutionPath  Absolute path to the main solution file (correct solution)
-     * @param inputFilePath     Absolute path to the input file
-     * @param timeLimitSeconds  Wall-clock time limit for execution (seconds)
-     * @param memoryMB          Memory limit for the container (MB)
-     * @param cpuCores          CPU cores (can be fractional, e.g., 1.0)
-     * @return A verdict indicating if the source code produces the same output as the main solution
-     */
-    public JudgeVerdict compareWithInputFile(String sourceCodePath, String mainSolutionPath, String inputFilePath,
-                                         int timeLimitSeconds, int memoryMB, double cpuCores) throws IOException, InterruptedException {
-        // Use the absolute paths directly
-        Path sourceCodeFile = Path.of(sourceCodePath);
-        Path mainSolutionFile = Path.of(mainSolutionPath);
-        Path inputFile = Path.of(inputFilePath);
-        
-        // Check if all files exist
-        if (!Files.exists(sourceCodeFile) || !Files.exists(mainSolutionFile) || !Files.exists(inputFile)) {
-            return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, "One or more required files not found");
-        }
-        
-        try {
-            // Create a temporary directory for the evaluation
-            Path tempDir = Files.createTempDirectory("judge-evaluation-");
-            
-            // Step 1: Compile and run the main solution using Docker
-            List<String> mainSolutionCmd = buildDockerCompileAndRunCommand(
-                mainSolutionFile.toString(), tempDir.resolve("main_solution").toString(), 
-                inputFile.toString(), timeLimitSeconds, memoryMB, cpuCores);
-                
-            RunResult mainSolutionResult = runCommand(mainSolutionCmd, timeLimitSeconds * 1000L + 5000L);
-            if (mainSolutionResult.exitCode != 0) {
-                return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, 
-                    "Main solution failed: " + mainSolutionResult.stderr);
-            }
-            String expectedOutput = mainSolutionResult.stdout.trim();
-            
-            // Step 2: Compile and run the source code using Docker
-            List<String> sourceCodeCmd = buildDockerCompileAndRunCommand(
-                sourceCodeFile.toString(), tempDir.resolve("submission").toString(), 
-                inputFile.toString(), timeLimitSeconds, memoryMB, cpuCores);
-                
-            RunResult sourceCodeResult = runCommand(sourceCodeCmd, timeLimitSeconds * 1000L + 5000L);
-            
-            // Check for various outcomes
-            if (sourceCodeResult.exitCode != 0) {
-                if (sourceCodeResult.exitCode == 124) {
-                    return new JudgeVerdict(SubmissionStatus.TIME_LIMIT_EXCEEDED, 
-                        "Time limit exceeded: " + sourceCodeResult.timeUsedMillis + "ms");
-                } else if (sourceCodeResult.stderr.contains("std::bad_alloc") || sourceCodeResult.memoryUsedKB >= memoryMB * 1024) {
-                    return new JudgeVerdict(SubmissionStatus.MEMORY_LIMIT_EXCEEDED, 
-                        "Memory limit exceeded: " + sourceCodeResult.memoryUsedKB + "KB");
-                } else {
-                    return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, 
-                        "Runtime error: " + sourceCodeResult.stderr);
-                }
-            }
-            
-            // Compare outputs
-            String actualOutput = sourceCodeResult.stdout.trim();
-            if (actualOutput.equals(expectedOutput)) {
-                return new JudgeVerdict(SubmissionStatus.ACCEPTED, 
-                    "Time: " + sourceCodeResult.timeUsedMillis + "ms, Memory: " + sourceCodeResult.memoryUsedKB + "KB");
-            } else {
-                return new JudgeVerdict(SubmissionStatus.WRONG_ANSWER, 
-                    "Expected output and actual output differ");
-            }
-        } catch (Exception e) {
-            return new JudgeVerdict(SubmissionStatus.RUNTIME_ERROR, 
-                "Error during execution: " + e.getMessage());
-        }
+        return new ParsedUsage(timeMs, memKB, other.toString());
     }
 }

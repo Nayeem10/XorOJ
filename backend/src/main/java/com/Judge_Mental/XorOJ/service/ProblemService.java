@@ -2,6 +2,7 @@ package com.Judge_Mental.XorOJ.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.Judge_Mental.XorOJ.dto.ContestResponseDTO;
 import com.Judge_Mental.XorOJ.dto.ProblemViewDTO;
@@ -12,6 +13,7 @@ import com.Judge_Mental.XorOJ.repo.ProblemContributorRepository;
 import com.Judge_Mental.XorOJ.repo.ProblemRepository;
 import com.Judge_Mental.XorOJ.repo.XUserRepository;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,6 +30,9 @@ public class ProblemService {
 
     @Autowired
     private ProblemContributorRepository problemContributorRepo;
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     public Problem findProblemById(Long id) {
         Problem problem = problemRepo.findProblemById(id).orElse(null);
@@ -107,11 +112,11 @@ public class ProblemService {
     public boolean updateProblem(Long userId, Long problemId, String description, String inputFormat, String outputFormat, String notes, String sampleInput, String sampleOutput) {
         Problem problem = problemRepo.findProblemById(problemId).orElse(null);
         // System.out.println(problem);
-        System.out.println(userId);
-        System.out.println(problemId);
+        // System.out.println(userId);
+        // System.out.println(problemId);
         if (problem == null || !authorHaveAccess(userId, problemId)) {
             // System.out.println(p);
-            System.out.println("User does not have access to update this problem.");
+            // System.out.println("User does not have access to update this problem.");
             return false;
         }
         problem.setDescription(description);
@@ -122,5 +127,17 @@ public class ProblemService {
         problem.setSampleOutput(sampleOutput);
         problemRepo.save(problem);
         return true;
+    }
+
+    public boolean updateProblem(Long userId, Long problemId, MultipartFile file) throws IOException {
+        Problem problem = problemRepo.findProblemById(problemId).orElse(null);
+        if (problem == null || !authorHaveAccess(userId, problemId)) {
+            return false;
+        }
+        String directory = "problems/" + problemId + "/mainSolution";
+
+        problem.setMainSolutionPath(fileStorageService.storeFile(file, directory, file.getOriginalFilename()));
+        
+        return problemRepo.save(problem) != null;
     }
 }

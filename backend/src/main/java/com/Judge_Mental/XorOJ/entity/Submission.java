@@ -36,10 +36,10 @@ public class Submission {
     private SubmissionStatus status;
 
     @Column
-    private Integer executionTime; // in milliseconds
+    private Long executionTime; // in milliseconds
 
     @Column
-    private Integer memoryUsed; // in kilobytes
+    private Long memoryUsed; // in kilobytes
 
     @Column(length = 1000)
     private String errorMessage;

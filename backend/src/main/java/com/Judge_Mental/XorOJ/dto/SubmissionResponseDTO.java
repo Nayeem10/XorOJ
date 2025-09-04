@@ -15,8 +15,8 @@ public class SubmissionResponseDTO {
     private String language;
     private LocalDateTime submissionTime;
     private SubmissionStatus status;
-    private Integer executionTime;
-    private Integer memoryUsed;
+    private Long executionTime;
+    private Long memoryUsed;
     private String filePath;
 
     // Getters and Setters

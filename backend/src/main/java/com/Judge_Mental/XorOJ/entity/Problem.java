@@ -69,8 +69,7 @@ public class Problem {
     String inputFileType;
     String outputFileType;
 
-    String testPath;
-    String solutionPath;
+    String mainSolutionPath;
     String checkerPath;
     String validatorPath;
     

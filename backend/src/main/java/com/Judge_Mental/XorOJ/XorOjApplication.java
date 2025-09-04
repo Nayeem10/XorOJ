@@ -96,8 +96,8 @@ public class XorOjApplication {
             submission1.setLanguage("java");
             submission1.setSubmissionTime(LocalDateTime.now());
             submission1.setStatus(Submission.SubmissionStatus.WRONG_ANSWER);
-            submission1.setExecutionTime(100);
-            submission1.setMemoryUsed(50000);
+            submission1.setExecutionTime(100L);
+            submission1.setMemoryUsed(50000L);
             submission1.setScore(0);
 
             Submission submission2 = new Submission();

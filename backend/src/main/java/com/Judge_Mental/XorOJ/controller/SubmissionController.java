@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.Judge_Mental.XorOJ.dto.SubmissionResponseDTO;
 import com.Judge_Mental.XorOJ.entity.Submission;
 import com.Judge_Mental.XorOJ.entity.XUser;
+import com.Judge_Mental.XorOJ.entity.Submission.SubmissionStatus;
 import com.Judge_Mental.XorOJ.judge.CppExecutor.RunResult;
 import com.Judge_Mental.XorOJ.service.JudgingService;
 import com.Judge_Mental.XorOJ.service.SubmissionService;
@@ -53,13 +54,13 @@ public class SubmissionController {
            .collect(Collectors.toList());
     }
 
-    public record submissionDTO(String code, String language, String stdin) {}
+    public record submissionRequestDTO(String code, String language) {}
     @PostMapping("contests/{contestId}/problems/{problemId}/submit")
-    public SubmissionResponseDTO submitSolution(
+    public SubmissionStatus submitSolution(
         @PathVariable Long contestId,
         @PathVariable Long problemId,
         @AuthenticationPrincipal(expression = "user") XUser user,
-        @RequestBody submissionDTO submission) throws IOException {
+        @RequestBody submissionRequestDTO submission) throws IOException, InterruptedException {
 
         Submission savedSubmission = submissionService.createSubmissionFromString(
             submission.code(),
@@ -68,8 +69,8 @@ public class SubmissionController {
             user.getId(),
             submission.language()
         );
-        
-        return SubmissionResponseDTO.fromSubmission(savedSubmission);
+        savedSubmission = judgingService.judgeSubmission(savedSubmission);
+        return savedSubmission.getStatus();
     }
 
     public record runRequest(String code, String language, String stdin) {}
@@ -79,26 +80,6 @@ public class SubmissionController {
         return judgingService.runCodeWithTest(request.code(), request.stdin());
     }
     
-    public record SubmissionRequest(String code, String language, Long problemId, Long contestId) {}
-    
-    // @PostMapping("/submit")
-    // public SubmissionResponseDTO submitSolutionToFile(
-    //     @RequestBody SubmissionRequest request,
-    //     @AuthenticationPrincipal(expression = "user") XUser user) throws IOException {
-        
-    //     // Create submission using service method
-    //     Submission savedSubmission = submissionService.createSubmissionFromString(
-    //         request.code(), 
-    //         request.problemId(), 
-    //         request.contestId(), 
-    //         user.getId(), 
-    //         Submission.ProgrammingLanguage.valueOf(request.language().toUpperCase())
-    //     );
-        
-    //     // Convert to response DTO
-    //     return SubmissionResponseDTO.fromSubmission(savedSubmission);
-    // }
-
     @PostMapping(value = "/testfile", consumes = "multipart/form-data")
     public RunResult submitSolution(
             @RequestPart("code") String codeFile,
