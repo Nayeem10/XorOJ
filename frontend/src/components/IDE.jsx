@@ -3,7 +3,8 @@ import { apiFetch } from "../api/client";
 import CodeEditor from "./CodeEditor";
 
 export default function IDE({
-  endpoint = "/api/submissions/test",
+  endpointRun = "/api/submissions/test",
+  endpointSubmit = "/api/submissions/submit",
   defaultLanguage = "cpp",
   initialCode,
   initialStdin = "5\n90 12 33 33 45\n",
@@ -83,7 +84,7 @@ n = int(data[0])
     setError("");
     setResult(null);
     try {
-      const data = await apiFetch(endpoint, {
+      const data = await apiFetch(endpointRun, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -100,7 +101,34 @@ n = int(data[0])
     } finally {
       setLoading(false);
     }
-  }, [canRun, code, language, stdinText, endpoint, onResult]);
+  }, [canRun, code, language, stdinText, endpointRun, onResult]);
+
+  const submitCode = useCallback(async () => {
+    if (!canRun) return;
+    setLoading(true);
+    setError("");
+    setResult(null);
+    try {
+      const data = await apiFetch(endpointSubmit, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          language,
+        }),
+      });
+      const normalized = normalizeResult(data);
+      setResult(normalized);
+      onResult?.(normalized);
+      // Show success notification
+      alert("Submission successful!");
+    } catch (e) {
+      setError(e?.message || "Submission failed");
+      alert("Submission failed: " + (e?.message || "Unknown error"));
+    } finally {
+      setLoading(false);
+    }
+  }, [canRun, code, language, stdinText, endpointSubmit, onResult]);
 
   // Ctrl/Cmd + Enter to run
   useEffect(() => {
@@ -131,16 +159,27 @@ n = int(data[0])
             <option value="python">Python 3</option>
           </select>
 
-          <button
-            onClick={runCode}
-            disabled={!canRun}
-            className={`px-3 py-1 rounded w-full xs:w-auto ${
-              canRun ? "bg-black text-white" : "bg-gray-300 text-gray-600 cursor-not-allowed"
-            }`}
-            title="Run (Ctrl/Cmd + Enter)"
-          >
-            {loading ? "Running…" : "Run"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={runCode}
+              disabled={!canRun}
+              className={`px-3 py-1 rounded w-full xs:w-auto ${canRun ? "bg-black text-white" : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                }`}
+              title="Run (Ctrl/Cmd + Enter)"
+            >
+              {loading ? "Running…" : "Run"}
+            </button>
+            {endpointSubmit && (
+              <button
+                onClick={submitCode}
+                disabled={!canRun}
+                className={`px-3 py-1 rounded w-full xs:w-auto ${canRun ? "bg-green-600 text-white hover:bg-green-700" : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  }`}
+              >
+                {loading ? "Submitting…" : "Submit"}
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -193,9 +232,8 @@ n = int(data[0])
               )}
             </h2>
             <pre
-              className={`w-full border rounded p-3 overflow-auto whitespace-pre-wrap ${
-                result?.stderr?.length > 0 ? "bg-red-50 border-red-300 text-red-700" : ""
-              }`}
+              className={`w-full border rounded p-3 overflow-auto whitespace-pre-wrap ${result?.stderr?.length > 0 ? "bg-red-50 border-red-300 text-red-700" : ""
+                }`}
             >
               {result
                 ? result.stderr?.length > 0

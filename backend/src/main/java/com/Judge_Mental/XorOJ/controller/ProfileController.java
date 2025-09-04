@@ -41,11 +41,14 @@ public class ProfileController {
     }
     
     @GetMapping("{username}")
-    public ResponseEntity<UserProfileDTO> getProfileByUsername(@PathVariable String username) {
+    public ResponseEntity<UserProfileDTO> getProfileByUsername(
+        @PathVariable String username,
+        @AuthenticationPrincipal(expression = "user") XUser authUser
+    ) {
         XUser user = userService.findByUsername(username);
 
         if (user != null) {
-            return ResponseEntity.ok(UserProfileDTO.fromEntity(user, user.equals(user)));
+            return ResponseEntity.ok(UserProfileDTO.fromEntity(user, user.getUsername().equals(authUser.getUsername())));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

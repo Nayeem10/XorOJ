@@ -5,7 +5,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { apiFetch } from "../api/client";
 import Card from "../components/Card";
 import IDE from "../components/IDE.jsx";
-import MathRenderer from "../components/MathRenderer.jsx"; 
+import MathRenderer from "../components/MathRenderer.jsx";
 
 import "../styles/styles.css";
 
@@ -18,7 +18,6 @@ export default function ProblemPage() {
   // Lifted code/language from IDE for submission
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("cpp");
-  const [submitting, setSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState(null);
 
   useEffect(() => {
@@ -33,23 +32,7 @@ export default function ProblemPage() {
       });
   }, [pid]);
 
-  const handleSubmit = async () => {
-    setSubmitting(true);
-    setSubmitResult(null);
-    try {
-      const data = await apiFetch(`/api/submissions/problems/${pid}/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, language }),
-      });
-      setSubmitResult(data); // optionally show result
-      alert("Submission successful!");
-    } catch (err) {
-      alert("Submission failed: " + err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  // No longer needed as submission is handled by the IDE component
 
   if (loading) return <p className="text-center mt-6">Loading problem...</p>;
   if (error) return <p className="text-red-500 mt-6 text-center">Error: {error}</p>;
@@ -57,16 +40,7 @@ export default function ProblemPage() {
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
-      {/* SUBMIT BUTTON */}
-      <div className="p-3 flex justify-end">
-        <button
-          onClick={handleSubmit}
-          disabled={submitting || !code.trim()}
-          className={`px-4 py-2 rounded ${submitting ? "bg-gray-300" : "bg-green-600 hover:bg-green-700 text-white"}`}
-        >
-          {submitting ? "Submitting…" : "Submit"}
-        </button>
-      </div>
+      {/* No separate submit button needed anymore */}
 
       {/* MOBILE / SMALL SCREENS */}
       <div className="flex-1 md:hidden flex flex-col min-h-0">
@@ -106,6 +80,8 @@ export default function ProblemPage() {
               language={language}
               setLanguage={setLanguage}
               initialStdin={problem.sampleInput || ""}
+              endpointSubmit={`/api/submissions/problems/${pid}/submit`}
+              onResult={result => setSubmitResult(result)}
             />
           </Panel>
         </PanelGroup>
@@ -148,6 +124,8 @@ export default function ProblemPage() {
               language={language}
               setLanguage={setLanguage}
               initialStdin={problem.sampleInput || ""}
+              endpointSubmit={`/api/submissions/problems/${pid}/submit`}
+              onResult={result => setSubmitResult(result)}
             />
           </Panel>
         </PanelGroup>
