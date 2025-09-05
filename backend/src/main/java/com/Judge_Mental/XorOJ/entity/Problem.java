@@ -76,4 +76,8 @@ public class Problem {
     @OneToMany(mappedBy = "problem", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonManagedReference
     private List<GeneratorFile> generatorFiles;
+
+    @OneToMany(mappedBy = "problem", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonManagedReference
+    private List<TestFile> testFiles;
 }
