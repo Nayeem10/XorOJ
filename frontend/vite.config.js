@@ -6,7 +6,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': { 
+<<<<<<< Updated upstream
         target: `http://172.28.130.16:8081`,
+=======
+        target: `http://localhost:8081`,
+>>>>>>> Stashed changes
         changeOrigin: true 
       },
     },
