@@ -42,6 +42,7 @@ export default function ContestCard({ contest }) {
         <span className="text-gray-500">{contest.visibility}</span>
       </div>
 
+
       <p>{contest.description}</p>
 
       <div>
