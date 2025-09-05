@@ -64,13 +64,10 @@ export default function ContestProblems() {
 
   const handleSave = async () => {
     try {
-      const payload = {
-        problems: (contestData.problems || []).map((p, i) => ({
-          id: p.id,
-          order: i + 1,
-        })),
-      };
-
+      const payload = (contestData.problems || []).map((p, i) => ({
+          first: Number(p.id),
+          second: i + 1,
+        }));
       const res = await apiFetch(`/api/edit/contests/${contestData.id}/problems`, {
         method: "POST",
         body: JSON.stringify(payload),

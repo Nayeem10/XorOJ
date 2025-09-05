@@ -3,22 +3,22 @@ import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { apiFetch } from "../../api/client";
 
-/** Convert an ISO string to a value acceptable by <input type="datetime-local" /> */
+/** Convert ISO string to <input type="datetime-local"> value with seconds */
 function toLocalInputValue(iso) {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  // Pad helper
   const pad = (n) => String(n).padStart(2, "0");
   const yyyy = d.getFullYear();
   const mm = pad(d.getMonth() + 1);
   const dd = pad(d.getDate());
   const hh = pad(d.getHours());
   const mi = pad(d.getMinutes());
-  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  const ss = pad(d.getSeconds());
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`;
 }
 
-/** Convert from <input datetime-local> value back to ISO */
+/** Convert <input datetime-local> value back to ISO */
 function fromLocalInputValue(s) {
   if (!s) return null;
   const d = new Date(s);
@@ -37,37 +37,29 @@ export default function ContestGeneral() {
   const [saveErr, setSaveErr] = useState("");
 
   // Derived JS dates
-  const startDate = useMemo(
-    () => (startLocal ? new Date(startLocal) : null),
-    [startLocal]
-  );
-  const endDate = useMemo(
-    () => (endLocal ? new Date(endLocal) : null),
-    [endLocal]
-  );
+  const startDate = useMemo(() => (startLocal ? new Date(startLocal) : null), [startLocal]);
+  const endDate = useMemo(() => (endLocal ? new Date(endLocal) : null), [endLocal]);
 
   // Validation rules
   const errors = useMemo(() => {
     const e = {};
     if (!title.trim()) e.title = "Title is required.";
-    if (!startDate || Number.isNaN(startDate.getTime()))
-      e.startTime = "Start time is required.";
-    if (!endDate || Number.isNaN(endDate.getTime()))
-      e.endTime = "End time is required.";
-    if (!e.startTime && !e.endTime && endDate <= startDate)
-      e.endTime = "End time must be after start time.";
+    if (!startDate || Number.isNaN(startDate.getTime())) e.startTime = "Start time is required.";
+    if (!endDate || Number.isNaN(endDate.getTime())) e.endTime = "End time is required.";
+    if (!e.startTime && !e.endTime && endDate <= startDate) e.endTime = "End time must be after start time.";
     return e;
   }, [title, startDate, endDate]);
 
   const isValid = Object.keys(errors).length === 0;
 
-  // When parent contestData changes (e.g., loaded from server), sync local fields
+  // Sync local fields when contestData changes
   useEffect(() => {
     setTitle(contestData.title || "");
     setDescription(contestData.description || "");
     setStartLocal(toLocalInputValue(contestData.startTime));
     setEndLocal(toLocalInputValue(contestData.endTime));
-  }, [contestData.id]); // re-sync only when switching contest or initial load
+    console.log("contestData synced:", contestData);
+  }, [contestData]);
 
   async function onSave(e) {
     e.preventDefault();
@@ -75,24 +67,37 @@ export default function ContestGeneral() {
     if (!isValid) return;
 
     setSaving(true);
-    try {
-      const payload = {
-        ...contestData,
-        title: title.trim(),
-        description,
-        startTime: fromLocalInputValue(startLocal),
-        endTime: fromLocalInputValue(endLocal),
-      };
 
-      // PUT update (adjust path/method to your API if needed)
-      const updated = await apiFetch(`/api/contests/${contestData.id}`, {
-        method: "PUT",
+    const payload = {
+      title: title.trim(),
+      description: description.trim(),
+      startTime: startLocal,
+      endTime: endLocal,
+    };
+
+    console.log("Posting payload:", payload);
+
+    try {
+      const result = await apiFetch(`/api/edit/contests/${contestData.id}/generalinfo`, {
+        method: "POST",
         body: JSON.stringify(payload),
       });
 
-      // Reflect changes upward
-      setContestData(updated || payload);
+      console.log("Server response:", result);
+
+      if (result === true) {
+        // API only returns true, so manually update contestData
+        setContestData((prev) => ({
+          ...prev,
+          ...payload,
+        }));
+        console.log (startLocal, endLocal);
+        console.log("contestData updated manually:", contestData);
+      } else {
+        setSaveErr("Failed to save contest. Server returned false.");
+      }
     } catch (err) {
+      console.error("Error saving contest:", err);
       setSaveErr(err?.message || "Failed to save contest.");
     } finally {
       setSaving(false);
@@ -110,9 +115,7 @@ export default function ContestGeneral() {
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. XorOJ Weekly #1"
         />
-        {errors.title && (
-          <p className="text-red-600 text-sm mt-1">{errors.title}</p>
-        )}
+        {errors.title && <p className="text-red-600 text-sm mt-1">{errors.title}</p>}
       </div>
 
       {/* Description */}
@@ -131,15 +134,13 @@ export default function ContestGeneral() {
         <label className="block text-sm font-medium mb-1">Start time *</label>
         <input
           type="datetime-local"
+          step="1"
           className={`input input-bordered w-full ${errors.startTime ? "input-error" : ""}`}
           value={startLocal}
           onChange={(e) => setStartLocal(e.target.value)}
-          // UX: don't allow past (optional; comment out if not desired)
           min={toLocalInputValue(new Date().toISOString())}
         />
-        {errors.startTime && (
-          <p className="text-red-600 text-sm mt-1">{errors.startTime}</p>
-        )}
+        {errors.startTime && <p className="text-red-600 text-sm mt-1">{errors.startTime}</p>}
       </div>
 
       {/* End time */}
@@ -147,15 +148,13 @@ export default function ContestGeneral() {
         <label className="block text-sm font-medium mb-1">End time *</label>
         <input
           type="datetime-local"
+          step="1"
           className={`input input-bordered w-full ${errors.endTime ? "input-error" : ""}`}
           value={endLocal}
           onChange={(e) => setEndLocal(e.target.value)}
-          // UX: set minimum end >= start (when start chosen)
           min={startLocal || undefined}
         />
-        {errors.endTime && (
-          <p className="text-red-600 text-sm mt-1">{errors.endTime}</p>
-        )}
+        {errors.endTime && <p className="text-red-600 text-sm mt-1">{errors.endTime}</p>}
       </div>
 
       {/* Save actions */}

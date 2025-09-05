@@ -22,7 +22,7 @@ export default function ContestEditor() {
     if (!initialData) {
       const fetchContest = async () => {
         try {
-          const res = await apiFetch(`/api/contests/${contestId}`);
+          const res = await apiFetch(`/api/contests/${contestId}/details`);
           if (!res) throw new Error("Failed to fetch contest data");
           setContestData(res);
         } catch (err) {
