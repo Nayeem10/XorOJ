@@ -101,7 +101,7 @@ export default function MyProblems() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {problems.map((p) => (
-            <Card key={p.id} title={`${p.title}`}>
+            <Card key={p.id} title={`${p.title} (ID: ${p.id})`}>
               <p className="text-sm text-gray-700 line-clamp-3">{p.statement}</p>
 
               <div className="mt-3 grid grid-cols-2 gap-y-1 text-sm text-gray-600">
