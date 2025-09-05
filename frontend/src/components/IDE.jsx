@@ -192,7 +192,7 @@ n = int(data[0])
           {/* Code editor */}
           <section className="space-y-2">
             <label className="text-sm font-medium">Code Editor</label>
-            <div className="h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] xl:h-[500px]">
+            <div className="h-[260px] sm:h-[310px] md:h-[360px] lg:h-[410px] xl:h-[460px]">
               <CodeEditor
                 language={language}
                 value={code}
@@ -220,7 +220,7 @@ n = int(data[0])
                 <h2 className="font-semibold">Output</h2>
                 <Metrics result={result} />
               </div>
-              <pre className="w-full h-32 sm:h-40 border rounded p-3 overflow-auto whitespace-pre-wrap text-sm">
+              <pre className="w-full h-24 sm:h-32 border rounded p-3 overflow-auto whitespace-pre-wrap text-sm">
                 {result
                   ? result.stdout?.length > 0
                     ? String(result.stdout)
@@ -237,7 +237,7 @@ n = int(data[0])
                 )}
               </h2>
               <pre
-                className={`w-full h-32 sm:h-40 border rounded p-3 overflow-auto whitespace-pre-wrap text-sm ${result?.stderr?.length > 0 ? "bg-red-50 border-red-300 text-red-700" : ""
+                className={`w-full h-24 sm:h-32 border rounded p-3 overflow-auto whitespace-pre-wrap text-sm ${result?.stderr?.length > 0 ? "bg-red-50 border-red-300 text-red-700" : ""
                   }`}
               >
                 {result

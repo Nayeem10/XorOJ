@@ -37,10 +37,10 @@ html[data-theme='dark'] {
   --colour-6: rgba(255,255,255,.06);
 
   /* brighten a step in dark mode so CTAs pop */
-  --accent-600: #528ae4;
+  --accent-600: #3b82f6;
   --accent-500: #60a5fa;
   --accent-400: #93c5fd;
-  --accent-contrast: #0b1220; /* readable on light CTA shades */
+  --accent-contrast: #ffffff; /* readable on light CTA shades */
 
   --success: #22c55e;
   --warning: #fbbf24;

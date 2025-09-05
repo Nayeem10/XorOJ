@@ -58,7 +58,7 @@ export default function ProblemPage() {
               {problem.outputFormat && <Card title="Output Format"><MathRenderer content={problem.outputFormat} /></Card>}
               <Card title="Sample Input"><pre className="text-sm overflow-x-auto">{problem.sampleInput}</pre></Card>
               <Card title="Sample Output"><pre className="text-sm overflow-x-auto">{problem.sampleOutput}</pre></Card>
-              <Card title="Difficulty & Tags">
+              <Card title="Difficulty">
                 <div className="flex flex-wrap gap-2 items-center">
                   <span className="font-medium text-sm">Rating: {problem.difficultyRating}</span>
                   {problem.tags?.map((tag) => (

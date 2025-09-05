@@ -9,10 +9,12 @@ const cardStyles = {
     boxShadow: '0 1px 2px var(--colour-6)'
   },
   title: {
-    
+    fontSize: '1.25rem',
+    fontWeight: 'bold',
+    color: 'var(--colour-2)',
   },
   content: {
-    
+    fontSize: '1rem',
   }
 };
 
