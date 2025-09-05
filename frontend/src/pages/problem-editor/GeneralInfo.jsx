@@ -93,13 +93,13 @@ export default function GeneralInfo() {
         contestId: problemData.contestId || "",
         tags: problemData.tags || [],
       };
-
+      payload.memoryLimit *= 1024; // Convert MB to KB
       console.log("Sending general info update:", payload);
       const res = await apiFetch(`/api/edit/problems/${problemData.id}/generalinfo`, {
         method: "POST",
         body: JSON.stringify(payload),
       });
-      if (!res) throw new Error("Failed to save general info");      
+      if (!res) throw new Error("Failed to save general info");
 
       setProblemData({ ...problemData, ...payload });
 
@@ -152,7 +152,7 @@ export default function GeneralInfo() {
           <input
             type="number"
             className="w-full border rounded px-2 py-1"
-            value={problemData.memoryLimit || 256}
+            value={problemData.memoryLimit / 1024 || 256}
             onChange={(e) =>
               setProblemData({ ...problemData, memoryLimit: Number(e.target.value) })
             }

@@ -102,9 +102,9 @@ n = int(data[0])
     } catch (e) {
       setError(e?.message || "Submit failed");
     } finally {
-      setIsSubmitting(false);
+      setIsRunning(false);
     }
-  }, [canRun, code, language, stdinText, endpointSubmit, onResult]);
+  }, [canRun, code, language, stdinText, endpointRun, onResult]);
 
   const submitCode = useCallback(async () => {
     if (!canRun) return;

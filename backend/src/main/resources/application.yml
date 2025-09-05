@@ -7,7 +7,7 @@ spring:
   jpa:
     open-in-view: true #change in prod
     hibernate:
-      ddl-auto: create-drop # change to update
+      ddl-auto: update # change to update
     show-sql: false
     properties:
       hibernate:

@@ -79,7 +79,7 @@ public class SubmissionController {
             submission.language()
         );
         savedSubmission = judgingService.judgeSubmission(savedSubmission);
-
+        // System.out.println("Judged submission with status: " + savedSubmission.getStatus());
         if (contestId > 0) {
             LocalDateTime endTime = contestService.getContestEndTime(contestId);
             if (endTime != null && endTime.isAfter(savedSubmission.getSubmissionTime())) {
@@ -111,6 +111,7 @@ public class SubmissionController {
             submission.language()
         );
         savedSubmission = judgingService.judgeSubmission(savedSubmission);
+        System.out.println("Judged submission with status: " + savedSubmission.getStatus());
         return savedSubmission.getStatus();
     }
 
